@@ -42,5 +42,8 @@ return new class extends Migration
     public function down(): void
     {
         //
+        DB::unprepared('DROP TRIGGER IF EXISTS personal_access_tokens_login_trigger');
+        DB::unprepared('DROP TRIGGER IF EXISTS personal_access_tokens_use_trigger');
+        DB::unprepared('DROP TRIGGER IF EXISTS personal_access_tokens_delete_trigger');
     }
 };
