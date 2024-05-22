@@ -70,7 +70,7 @@ class RegisterController extends Controller
             'name' => 'required|string|max:255',
             'nickname' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:8',
+            'phone' => 'required|string|min:20',
             'password' => ['required', Password::min(6)],
         ]);
         return $validator;
