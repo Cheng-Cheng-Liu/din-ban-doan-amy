@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use App\Models\Admin;
 
 class LoginController extends Controller
 {
@@ -20,8 +21,8 @@ class LoginController extends Controller
         $this->email = $request->input('email');
         $this->password = $request->input('password');
     }
-
-    public function index(Request $request){
+// 前台會員登入
+    public function memberLogin(Request $request){
         // 檢查參數正確嗎?
         $checkParameter = $this->checkParameter();
         if ($checkParameter->fails()) {
@@ -40,8 +41,19 @@ class LoginController extends Controller
             return response()->json(['message' => 'Invalid email or password'], 401);
         }
     }
+// 後台會員登入
+    public function adminLogin(Request $request){
 
-
+        $credentials = $request->only('email', 'password');
+        if (Auth::guard('admin')->attempt($credentials)) {
+            $admin = Auth::guard('admin')->user();
+            $token = $admin->createToken('test')->plainTextToken;
+            return response()->json(['message' => 'Login successful','token' => $token]);
+        } else {
+            return response()->json(['message' => 'Invalid email or password'], 401);
+        }
+    }
+// 驗證器
     public function checkParameter()
     {
         $validator = Validator::make([
