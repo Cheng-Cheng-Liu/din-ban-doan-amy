@@ -19,15 +19,6 @@ use Illuminate\Support\Facades\Auth;
 Route::post('register',[RegisterController::class,'index']);
 Route::post('login',[LoginController::class,'memberLogin']);
 Route::post('login_back',[LoginController::class,'adminLogin']);
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-// Route::prefix('member')->middleware(['auth:sanctum','verified'])->group(function () {
-//     Route::get('/test', function () {
-//         return 'this is member';
-//     });
-// });
-
 Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::get('/test', function () {
         return 'this is member';

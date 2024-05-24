@@ -32,11 +32,8 @@ class LoginController extends Controller
 
 
         $credentials = $request->only('email', 'password');
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-
-            $token = $user->createToken('front')->plainTextToken;
-            return response()->json(['message' => 'Login successful','token' => $token]);
+        if ($token = auth()->attempt($credentials)) {
+            return $this->respondWithToken($token);
         } else {
             return response()->json(['message' => 'Invalid email or password'], 401);
         }
@@ -45,10 +42,8 @@ class LoginController extends Controller
     public function adminLogin(Request $request){
 
         $credentials = $request->only('email', 'password');
-        if (Auth::guard('web_admin')->attempt($credentials)) {
-            $admin = Auth::guard('web_admin')->user();
-            $token = $admin->createToken('test')->plainTextToken;
-            return response()->json(['message' => 'Login successful','token' => $token]);
+        if ($token = auth()->guard('admin')->attempt($credentials)) {
+            return $this->respondWithToken($token);
         } else {
             return response()->json(['message' => 'Invalid email or password'], 401);
         }
@@ -65,5 +60,13 @@ class LoginController extends Controller
         ]);
         return $validator;
 
+    }
+
+    protected function respondWithToken($token)
+    {
+        return response()->json([
+            "message"=> "登入成功",
+            "token"=>$token,
+        ]);
     }
 }

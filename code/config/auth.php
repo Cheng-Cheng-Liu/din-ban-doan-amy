@@ -37,21 +37,21 @@ return [
 
     'guards' => [
         'web' => [
-            'driver' => 'session',
+            'driver' => 'jwt',
             'provider' => 'users',
         ],
         'web_admin' => [
-            'driver' => 'session',
+            'driver' => 'jwt',
             'provider' => 'admins',
         ],
 
         'member' => [
-            'driver' => 'sanctum',
+            'driver' => 'jwt',
             'provider' => 'users',
             'hash' => true,
         ],
         'admin' => [
-            'driver' => 'token',
+            'driver' => 'jwt',
             'provider' => 'admins',
             'hash' => true,
         ],
