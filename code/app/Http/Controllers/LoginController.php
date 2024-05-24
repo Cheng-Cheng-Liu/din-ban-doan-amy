@@ -45,8 +45,8 @@ class LoginController extends Controller
     public function adminLogin(Request $request){
 
         $credentials = $request->only('email', 'password');
-        if (Auth::guard('admin')->attempt($credentials)) {
-            $admin = Auth::guard('admin')->user();
+        if (Auth::guard('web_admin')->attempt($credentials)) {
+            $admin = Auth::guard('web_admin')->user();
             $token = $admin->createToken('test')->plainTextToken;
             return response()->json(['message' => 'Login successful','token' => $token]);
         } else {

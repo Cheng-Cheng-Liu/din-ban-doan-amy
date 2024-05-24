@@ -40,15 +40,20 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-
-        'api' => [
-            'driver' => 'token',
-            'provider' => 'users',
-            'hash' => false,
+        'web_admin' => [
+            'driver' => 'session',
+            'provider' => 'admins',
         ],
-        'admin' => [ // 新增的 admin 護衛
-            'driver' => 'session', // 或 'token'，根據你的需求選擇
-            'provider' => 'admins', // 使用 admins 資料提供者
+
+        'member' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+            'hash' => true,
+        ],
+        'admin' => [
+            'driver' => 'token',
+            'provider' => 'admins',
+            'hash' => true,
         ],
     ],
 
