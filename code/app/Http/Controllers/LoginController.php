@@ -102,14 +102,14 @@ class LoginController extends Controller
     {
 
         $credentials = $request->only('email', 'password');
-        if ($token = auth()->guard('web_admin')->attempt($credentials)) {
+        if ($token = auth()->guard('admin')->attempt($credentials)) {
             // 確認會員狀態是否啟用
-            $status = auth()->guard('web_admin')->user()->status;
+            $status = auth()->guard('admin')->user()->status;
             if($status!=1){
                 return  response()->json(['error' => 2004]);
             }
 
-            $id = auth()->guard('web_admin')->user()->id;
+            $id = auth()->guard('admin')->user()->id;
             try {
                 // 生成token並記錄在personal_access_tokens
                 $personal_access_token = new Personal_access_token;
