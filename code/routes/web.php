@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Models\User;
+use App\Http\Controllers\RestaurantController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,9 +16,7 @@ use App\Models\User;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [RestaurantController::class,'get_member_restaurants']);
 
 // 寄認證信
 Route::get('/email/verify', function () {

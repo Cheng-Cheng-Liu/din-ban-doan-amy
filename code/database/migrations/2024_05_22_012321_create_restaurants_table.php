@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name',255);
             $table->string('tag',255);
             $table->string('phone',15);
-            $table->dateTime('opening_time', $precision = 0);
-            $table->dateTime('closing_time', $precision = 0);
+            $table->time('opening_time', $precision = 0);
+            $table->time('closing_time', $precision = 0);
             $table->string('rest_day');
             $table->tinyInteger('status');
             $table->float('avg_score', 2, 1);

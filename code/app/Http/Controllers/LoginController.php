@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use App\Models\Admin;
 use App\Models\Personal_access_token;
+use Exception;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
@@ -32,21 +35,48 @@ class LoginController extends Controller
         }
 
 
-
+        // 比對mail、password是否一致?
         $credentials = $request->only('email', 'password');
         if ($token = auth()->attempt($credentials)) {
             $id = Auth::user()->id;
-            $time = now();
-            $personal_access_token = new Personal_access_token();
-            $personal_access_token->tokenable_type = "App\Models\User";
-            $personal_access_token->tokenable_id = $id;
-            $personal_access_token->name = "front";
-            $personal_access_token->token = $token;
-            $personal_access_token->created_at = $time;
-            $personal_access_token->save;
+            try {
+                // 生成token並記錄在personal_access_tokens
+                $personal_access_token = new Personal_access_token;
+                $personal_access_token->tokenable_type = "App\Models\User";
+                $personal_access_token->tokenable_id = $id;
+                $personal_access_token->name = "front";
+                $personal_access_token->token = 'token';
+                $personal_access_token->save();
+            } catch (Exception $e) {
+                // 回傳錯誤訊息
+                return response()->json(['error' => 1002]);
+            }
+            // 生成要給”取得會員的啟用中全部餐廳”這支api的redis資料
+            $myRestaurantData = DB::select('
+            SELECT restaurants.id as "id", restaurants.name as "name", restaurants.phone as "phone",
+            restaurants.opening_time as "opening_time",
+            restaurants.closing_time as "closing_time",
+            restaurants.rest_day as "rest_day",
+            restaurants.avg_score as "avg_score",
+            restaurants.total_comments_count as "total_comments_count",
+            CASE WHEN A.id IS NULL THEN FALSE ELSE TRUE END AS "favorite"
+            FROM restaurants LEFT JOIN (select * from favorites where user_id = ?)A ON restaurants.id = A.restaurant_id WHERE restaurants.status = 1
+            ORDER BY restaurants.priority ASC, id ASC', [$id]);
+            $total = count($myRestaurantData);
+
+            $myRestaurant = [
+                "total" => $total,
+                "list" => $myRestaurantData
+
+            ];
+            $jsonData =json_encode($myRestaurant);
+            Redis::set('myrestaurant' . $id, $jsonData);
+
+
+            // 成功，回傳相關訊息
             return $this->respondWithToken($token);
         } else {
-            return response()->json(['message' => 'Invalid email or password'], 401);
+            return response()->json(['error' => 2002]);
         }
     }
     // 後台會員登入
@@ -57,7 +87,7 @@ class LoginController extends Controller
         if ($token = auth()->guard('admin')->attempt($credentials)) {
             return $this->respondWithToken($token);
         } else {
-            return response()->json(['message' => 'Invalid email or password'], 401);
+            return response()->json(['error' => 2002]);
         }
     }
     // 驗證器
