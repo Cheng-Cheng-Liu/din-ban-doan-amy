@@ -11,6 +11,7 @@ use App\Models\Personal_access_token;
 use Exception;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -38,6 +39,20 @@ class LoginController extends Controller
         // 比對mail、password是否一致?
         $credentials = $request->only('email', 'password');
         if ($token = auth()->attempt($credentials)) {
+            // 檢查email是不是已註冊完成
+            $checkEmailVertifiedAtNotNull = $this->checkEmailVertifiedAtNotNull();
+
+            if (!$checkEmailVertifiedAtNotNull) {
+                Auth::user()->sendEmailVerificationNotification();
+                return  response()->json(['error' => 2003]);
+            }
+
+            // 確認會員狀態是否啟用
+            $status = Auth::user()->status;
+            if($status!=1){
+                return  response()->json(['error' => 2004]);
+            }
+
             $id = Auth::user()->id;
             try {
                 // 生成token並記錄在personal_access_tokens
@@ -51,6 +66,9 @@ class LoginController extends Controller
                 // 回傳錯誤訊息
                 return response()->json(['error' => 1002]);
             }
+
+            // 刪除”取得會員的啟用中全部餐廳”這支api的redis資料
+            Redis::del('myrestaurant' . $id);
             // 生成要給”取得會員的啟用中全部餐廳”這支api的redis資料
             $myRestaurantData = DB::select('
             SELECT restaurants.id as "id", restaurants.name as "name", restaurants.phone as "phone",
@@ -69,7 +87,7 @@ class LoginController extends Controller
                 "list" => $myRestaurantData
 
             ];
-            $jsonData =json_encode($myRestaurant);
+            $jsonData = json_encode($myRestaurant);
             Redis::set('myrestaurant' . $id, $jsonData);
 
 
@@ -84,11 +102,45 @@ class LoginController extends Controller
     {
 
         $credentials = $request->only('email', 'password');
-        if ($token = auth()->guard('admin')->attempt($credentials)) {
+        if ($token = auth()->guard('web_admin')->attempt($credentials)) {
+            // 確認會員狀態是否啟用
+            $status = auth()->guard('web_admin')->user()->status;
+            if($status!=1){
+                return  response()->json(['error' => 2004]);
+            }
+
+            $id = auth()->guard('web_admin')->user()->id;
+            try {
+                // 生成token並記錄在personal_access_tokens
+                $personal_access_token = new Personal_access_token;
+                $personal_access_token->tokenable_type = "App\Models\Admin";
+                $personal_access_token->tokenable_id = $id;
+                $personal_access_token->name = "back";
+                $personal_access_token->token = 'token';
+                $personal_access_token->save();
+            } catch (Exception $e) {
+                // 回傳錯誤訊息
+                return response()->json(['error' => 1002]);
+            }
             return $this->respondWithToken($token);
         } else {
             return response()->json(['error' => 2002]);
         }
+    }
+
+    // 前台會員登出
+    public function memberLogout(){
+        $user = Auth::user();
+        $id=$user->id;
+        Personal_access_token::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\User')->delete();
+        return response()->json(['message' => 'Logged out successfully']);
+    }
+    // 後台會員登出
+    public function backLogout(){
+        $user = Auth::user();
+        $id=$user->id;
+        Personal_access_token::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\Admin')->delete();
+        return response()->json(['message' => 'Logged out successfully']);
     }
     // 驗證器
     public function checkParameter()
@@ -109,5 +161,14 @@ class LoginController extends Controller
             "message" => "登入成功",
             "token" => $token,
         ]);
+    }
+
+
+    public function checkEmailVertifiedAtNotNull()
+    {
+        $user = User::where('email', $this->email)
+            ->whereNotNull('email_verified_at')
+            ->first();
+        return $user;
     }
 }

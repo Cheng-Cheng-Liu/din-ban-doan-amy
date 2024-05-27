@@ -23,12 +23,12 @@ Route::post('login',[LoginController::class,'memberLogin']);
 Route::post('login_back',[LoginController::class,'adminLogin']);
 
 Route::prefix('member')->middleware(['auth:member'])->group(function () {
-    Route::post('/logout', function () {
-        $user = Auth::user();
-        $id=$user->id;
-        Personal_access_token::where('tokenable_id', $id)->delete();
-        return response()->json(['message' => 'Logged out successfully']);
-    });
+    Route::post('/logout',[LoginController::class,'memberLogout']);
     Route::get('/restaurants', [RestaurantController::class,'get_member_restaurants']);
+
+});
+Route::prefix('back')->middleware(['auth:admin'])->group(function () {
+    Route::post('/logout',[LoginController::class,'backLogout']);
+
 
 });

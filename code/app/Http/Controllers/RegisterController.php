@@ -35,7 +35,7 @@ class RegisterController extends Controller
         $checkEmailVertifiedAtNotNull = $this->checkEmailVertifiedAtNotNull();
 
         if ($checkEmailVertifiedAtNotNull) {
-            return  response()->json(['error' => 2001]);
+            return  response()->json(['error' => 2003]);
 
         }
         // users資料表有沒有這個email
@@ -53,6 +53,8 @@ class RegisterController extends Controller
             $user->sendEmailVerificationNotification();
             return  response()->json(['error' => 2003]);
         } else {
+            // 插入name    、email   、     password  、status=1(啟用:1，停權:2)、nickname、phone、roles=[‘member’]
+            // 寄送認證信
             $this->CreateUser();
             return  response()->json(['error' => 2003]);
         }
