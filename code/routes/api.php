@@ -27,7 +27,7 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::get('/restaurants', [RestaurantController::class,'get_member_restaurants']);
 
 });
-Route::prefix('back')->middleware(['auth:admin'])->group(function () {
+Route::prefix('back')->middleware(['auth:back'])->group(function () {
     Route::post('/logout',[LoginController::class,'backLogout']);
 
 
