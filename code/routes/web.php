@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Models\User;
 use App\Http\Controllers\RestaurantController;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\HelloMail;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -39,3 +41,6 @@ Route::post('/email/verification-notification', function (Request $request) {
     return back()->with('message', 'Verification link sent!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
+Route::get('/mail', function(){
+    Mail::to('juliet6124amy@gmail.com')->send(new HelloMail());
+});

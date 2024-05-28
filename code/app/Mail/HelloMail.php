@@ -55,7 +55,7 @@ class HelloMail extends Mailable
 
     public function build()
     {
-        return $this->view('emails.hello')
+        return $this->view('email.hello')
                     ->subject('Hello from Laravel');
     }
 

@@ -132,6 +132,8 @@ class LoginController extends Controller
     public function memberLogout(){
         $user = Auth::user();
         $id=$user->id;
+        // 刪除該users. id的所有token、redis中所有”取得會員的啟用中全部餐廳”的相關資料
+        Redis::del('myrestaurant' . $id);
         Personal_access_token::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\User')->delete();
         return response()->json(['message' => 'Logged out successfully']);
     }
