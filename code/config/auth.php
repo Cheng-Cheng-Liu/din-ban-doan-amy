@@ -49,12 +49,12 @@ return [
         'member' => [
             'driver' => 'jwt',
             'provider' => 'users',
-            'hash' => true,
+
         ],
         'back' => [
             'driver' => 'jwt',
             'provider' => 'admins',
-            'hash' => true,
+
         ],
     ],
 

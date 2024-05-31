@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use App\Models\Admin;
-use App\Models\Personal_access_token;
+use App\Models\PersonalAccessToken;
 use Exception;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\DB;
@@ -49,18 +49,21 @@ class LoginController extends Controller
 
             // 確認會員狀態是否啟用
             $status = Auth::user()->status;
-            if($status!=1){
+            if ($status != 1) {
                 return  response()->json(['error' => 2004]);
             }
+            $string = $token;
+            $parts = explode(".", $string);
+            $lastPart = end($parts);
 
             $id = Auth::user()->id;
             try {
                 // 生成token並記錄在personal_access_tokens
-                $personal_access_token = new Personal_access_token;
+                $personal_access_token = new PersonalAccessToken;
                 $personal_access_token->tokenable_type = "App\Models\User";
                 $personal_access_token->tokenable_id = $id;
                 $personal_access_token->name = "front";
-                $personal_access_token->token = 'token';
+                $personal_access_token->token = $lastPart;
                 $personal_access_token->save();
             } catch (Exception $e) {
                 // 回傳錯誤訊息
@@ -105,14 +108,14 @@ class LoginController extends Controller
         if ($token = auth()->guard('web_admin')->attempt($credentials)) {
             // 確認會員狀態是否啟用
             $status = auth()->guard('web_admin')->user()->status;
-            if($status!=1){
+            if ($status != 1) {
                 return  response()->json(['error' => 2004]);
             }
 
             $id = auth()->guard('web_admin')->user()->id;
             try {
                 // 生成token並記錄在personal_access_tokens
-                $personal_access_token = new Personal_access_token;
+                $personal_access_token = new PersonalAccessToken;
                 $personal_access_token->tokenable_type = "App\Models\Admin";
                 $personal_access_token->tokenable_id = $id;
                 $personal_access_token->name = "back";
@@ -129,19 +132,21 @@ class LoginController extends Controller
     }
 
     // 前台會員登出
-    public function memberLogout(){
+    public function memberLogout()
+    {
         $user = Auth::user();
-        $id=$user->id;
+        $id = $user->id;
         // 刪除該users. id的所有token、redis中所有”取得會員的啟用中全部餐廳”的相關資料
         Redis::del('myrestaurant' . $id);
-        Personal_access_token::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\User')->delete();
+        PersonalAccessToken::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\User')->delete();
         return response()->json(['message' => 'Logged out successfully']);
     }
     // 後台會員登出
-    public function backLogout(){
+    public function backLogout()
+    {
         $user = Auth::user();
-        $id=$user->id;
-        Personal_access_token::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\Admin')->delete();
+        $id = $user->id;
+        PersonalAccessToken::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\Admin')->delete();
         return response()->json(['message' => 'Logged out successfully']);
     }
     // 驗證器
