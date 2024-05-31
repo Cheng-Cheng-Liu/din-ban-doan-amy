@@ -32,26 +32,31 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
 });
 
-Route::get('test', function () {
 
-    $date = Carbon::now();
+Route::get('test', function(){
 
-    $formattedDate = $date->format('Ymd');
-    $formattedDateDash = $date->format('Y-m-d');
-    $hour_now = $date->format('H');
-    $hour = $hour_now - 1;
+    return response()->json(['error' =>"test"]);
+});
 
-    $start = $formattedDateDash . " " . $hour . ":00:00";
-    $stop = $formattedDateDash . " " . $hour . ":59:59";
-    $Order_amount_sum_hourly = Order::select('restaurant_id', DB::raw('SUM(amount) as total_amount'))
-        ->whereBetween('created_at', [$start, $stop])
-        ->groupBy('restaurant_id')
-        ->get();
+Route::get('o', function(){
 
-    foreach ($Order_amount_sum_hourly as $oneRestaurant) {
-        $key = $oneRestaurant['restaurant_id'] . $formattedDate;
-        echo $key;
-        echo $oneRestaurant['total_amount'];
-        echo "<hr>";
-    }
+
+// Set the URL to request
+$url = "http://localhost:8082/api/test";
+
+
+//初始化
+$curl = curl_init();
+//设置抓取的url
+curl_setopt($curl, CURLOPT_URL, $url);
+//设置头文件的信息作为数据流输出
+curl_setopt($curl, CURLOPT_HEADER, 1);
+//设置获取的信息以文件流的形式返回，而不是直接输出。
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+     //执行命令
+    $data = curl_exec($curl);
+     //关闭URL请求
+    curl_close($curl);
+     //显示获得的数据
+    print_r($data);
 });
