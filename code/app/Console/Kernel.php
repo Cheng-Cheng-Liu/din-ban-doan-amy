@@ -6,8 +6,8 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\HelloMail;
-use App\Jobs\Statistic;
-
+use App\Jobs\StatisticPersonalAccessTokenLogCountHourly;
+use App\Jobs\StatisticRestaurantOrderAmountHourly;
 class Kernel extends ConsoleKernel
 {
     /**
@@ -20,7 +20,8 @@ class Kernel extends ConsoleKernel
         //     // 在调度任务中发送邮件
         //     Mail::to('juliet6124amy@gmail.com')->send(new HelloMail());
         // })->everyMinute();
-        $schedule->job(new Statistic,'reports','redis')->hourly();
+        $schedule->job(new StatisticPersonalAccessTokenLogCountHourly,'reports','redis')->hourly();
+        $schedule->job(new StatisticRestaurantOrderAmountHourly,'reports','redis')->hourly();
     }
 
     /**

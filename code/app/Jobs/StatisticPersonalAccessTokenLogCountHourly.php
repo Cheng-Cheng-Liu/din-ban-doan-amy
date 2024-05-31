@@ -13,7 +13,7 @@ use Carbon\Carbon;
 
 
 
-class Statistic implements ShouldQueue
+class StatisticPersonalAccessTokenLogCountHourly implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
