@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RestaurantController;
+use App\Http\Controllers\MealController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use Carbon\Carbon;
@@ -33,30 +34,5 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 });
 
 
-Route::get('test', function(){
+Route::get('test',[MealController::class, 'saveMeal'] );
 
-    return response()->json(['error' =>"test"]);
-});
-
-Route::get('o', function(){
-
-
-// Set the URL to request
-$url = "http://localhost:8082/api/test";
-
-
-//初始化
-$curl = curl_init();
-//设置抓取的url
-curl_setopt($curl, CURLOPT_URL, $url);
-//设置头文件的信息作为数据流输出
-curl_setopt($curl, CURLOPT_HEADER, 1);
-//设置获取的信息以文件流的形式返回，而不是直接输出。
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-     //执行命令
-    $data = curl_exec($curl);
-     //关闭URL请求
-    curl_close($curl);
-     //显示获得的数据
-    print_r($data);
-});
