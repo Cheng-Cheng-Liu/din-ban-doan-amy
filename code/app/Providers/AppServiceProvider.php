@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
                 case "Oishii":
                     return new Oishii();
                     break;
-                case "SteakHome":
+                case "Tasty":
                     return new Tasty();
                     break;
                 default:

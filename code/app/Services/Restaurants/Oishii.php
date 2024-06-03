@@ -16,7 +16,7 @@ class Oishii implements RestaurantInterface
         $curl = curl_init();
 
 
-        $data = json_encode(['id' => 3212]);
+
 
 
         // $url = 'http://neil.xincity.xyz:9998/api/menu/all';
@@ -41,28 +41,6 @@ class Oishii implements RestaurantInterface
         $anotherIds = array_column($existMealId, 'another_id');
 
         foreach($getMeal->menu as $oneMeal){
-
-            // if(!in_array($oneMeal[0]->meal_id,$existMealId)){
-            //     $meal= new Meal();
-            //     $meal->restaurant_id = $restaurantId;
-            //     $meal->another_id= $oneMeal[0]->meal_id;
-            //     $meal->name=$oneMeal[0]->meal_name;
-            //     $meal->price=$oneMeal[0]->price;
-            //     $meal->status=1;
-            //     $meal->save();
-            // }{
-            //     $meal = Meal::where('restaurant_id', $restaurantId)
-            // ->where('another_id', $oneMeal[0]->meal_id)
-            // ->first();
-            // $meal->name=$oneMeal[0]->meal_name;
-            // $meal->price=$oneMeal[0]->price;
-            // $meal->save();
-            // }
-
-            // $meal = Meal::where('restaurant_id', $restaurantId)
-            // ->where('another_id', $oneMeal->meal_id)
-            // ->first();
-            // echo $meal->id;
 
 
             if(!in_array((string)$oneMeal->meal_id,$anotherIds)){

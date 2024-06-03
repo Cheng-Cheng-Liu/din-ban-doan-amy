@@ -11,9 +11,5 @@ class MealController extends Controller
 {
     function saveMeal(RestaurantInterface $restaurant){
         $restaurant->get_meals();
-
-
-
-
-    }
+}
 }

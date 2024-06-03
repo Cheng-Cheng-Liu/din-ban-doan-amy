@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\Restaurant;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -34,5 +35,11 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 });
 
 
-Route::get('test',[MealController::class, 'saveMeal'] );
+Route::get('/saveMeal',[MealController::class, 'saveMeal'] );
 
+Route::get('/test',function(){
+    $restaurant=Restaurant::where('service','!=','')->get(['service'])->toArray();
+        foreach($restaurant as $oneRestaurant){
+var_dump($oneRestaurant['service']);
+    }
+});

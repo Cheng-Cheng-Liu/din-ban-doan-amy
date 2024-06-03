@@ -7,7 +7,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Restaurant;
+use App\Contracts\RestaurantInterface;
+USE App\Http\Controllers\MealController;
+use Illuminate\Support\Facades\App;
+use App\Services\Restaurants\SteakHome;
 use App\Services\Restaurants\Oishii;
+use App\Services\Restaurants\Tasty;
 
 class GetMeal implements ShouldQueue
 {
@@ -16,9 +22,10 @@ class GetMeal implements ShouldQueue
     /**
      * Create a new job instance.
      */
+    public $myRestaurant;
     public function __construct()
     {
-        //
+
     }
 
     /**
@@ -26,12 +33,25 @@ class GetMeal implements ShouldQueue
      */
     public function handle(): void
     {
-        $meals = json_decode(Oishii::get_meals());
-        echo "<pre>";
-        echo $meals;
-        echo "</pre>";
-        // foreach($meals as $oneMeal){
-
-        // }
+        $restaurant=Restaurant::where('service','!=','')->get(['service'])->toArray();
+        foreach($restaurant as $oneRestaurant){
+            switch ($oneRestaurant['service']) {
+                case "SteakHome":
+                    $restaurant= new SteakHome();
+                    $restaurant->get_meals();
+                    break;
+                case "Oishii":
+                    $restaurant= new Oishii();
+                    $restaurant->get_meals();
+                    break;
+                case "Tasty":
+                    $restaurant= new Tasty();
+                    $restaurant->get_meals();
+                    break;
+                default:
+                    echo $oneRestaurant;
+                    break;
     }
+    }
+}
 }

@@ -2,12 +2,17 @@
 
 namespace App\Console;
 
+use App\Jobs\GetMeal;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\HelloMail;
 use App\Jobs\StatisticPersonalAccessTokenLogCountHourly;
 use App\Jobs\StatisticRestaurantOrderAmountHourly;
+
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\MealController;
+
 class Kernel extends ConsoleKernel
 {
     /**
@@ -22,6 +27,14 @@ class Kernel extends ConsoleKernel
         // })->everyMinute();
         $schedule->job(new StatisticPersonalAccessTokenLogCountHourly,'reports','redis')->hourly();
         $schedule->job(new StatisticRestaurantOrderAmountHourly,'reports','redis')->hourly();
+// 每日自動更新餐點
+
+        $schedule->job(new GetMeal())->everyMinute();
+
+
+
+
+
     }
 
     /**
