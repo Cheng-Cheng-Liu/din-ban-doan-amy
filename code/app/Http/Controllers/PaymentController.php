@@ -23,7 +23,7 @@ class PaymentController extends Controller
         // 訂單編號
         $date = Carbon::now();
         $now = $date->format('YmdHisu');
-        $trade_no = "mypay" . $now;
+        $trade_no = "mypay" . (string)$now;
         // 生成檢查碼
         $amount = $this->amount;
         $choose_payment = "Credit";
@@ -37,17 +37,17 @@ class PaymentController extends Controller
         $return_url = "http://localhost:8082/api/wallet/recharge/result";
         $trade_desc = "購買商品 1";
         $row = [
-            "amount=" . $amount,
-            "choose_payment=" . $choose_payment,
-            "encrypt_type=" . $encrypt_type,
-            "item_name=" . $item_name,
-            "lang=" . $lang,
-            "merchant_id=" . $merchant_id,
-            "merchant_trade_date=" . $merchant_trade_date,
-            "merchant_trade_no=" . $merchant_trade_no,
-            "payment_type=" . $payment_type,
-            "return_url=" . $return_url,
-            "trade_desc=" . $trade_desc
+        "amount=" . $amount,
+        "choose_payment=" . $choose_payment,
+        "encrypt_type=" . $encrypt_type,
+        "item_name=" . $item_name,
+        "lang=" . $lang,
+        "merchant_id=" . $merchant_id,
+        "merchant_trade_date=" . $merchant_trade_date,
+        "merchant_trade_no=" . $merchant_trade_no,
+        "payment_type=" . $payment_type,
+        "return_url=" . $return_url,
+        "trade_desc=" . $trade_desc
         ];
         sort($row);
         $rowString = "";
@@ -57,12 +57,46 @@ class PaymentController extends Controller
         $rowCheck = "hash_key=61533ba5927296cd&" . $rowString . "&hash_iv=ffb5b7effb04eb95";
         // urlencode
         $urlencodeRow = $this->ecpayUrlEncode($rowCheck);
+        // hash256
         $hashRow = hash_hmac("sha256", $urlencodeRow, env('SHA256_SECRET'));
         $check_mac_value = strtoupper($hashRow);
-        return response()->json(['error' => $check_mac_value]);
+        // curl
+        $data=[
+        "amount"=>$amount,
+        "choose_payment"=> $choose_payment,
+        "encrypt_type"=> $encrypt_type,
+        "item_name"=> $item_name,
+        "lang" => $lang,
+        "merchant_id" => $merchant_id,
+        "merchant_trade_date" => $merchant_trade_date,
+        "merchant_trade_no"=> $merchant_trade_no,
+        "payment_type" => $payment_type,
+        "return_url" => $return_url,
+        "trade_desc" => $trade_desc,
+        "check_mac_value"=>$check_mac_value
+        ];
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "http://neil.xincity.xyz:9997/api/Cashier/AioCheckOut");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt(
+            $ch,
+            CURLOPT_POSTFIELDS,
+            http_build_query($data)
+        );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $server_output = curl_exec($ch);
+
+        curl_close($ch);
+
+        return response()->json(['error' =>$server_output]);
     }
-    function rechargeResult()
+    function rechargeResult(Request $request)
     {
+        $check_mac_value = $request->input('check_mac_value');
+        echo $check_mac_value;
     }
     // 驗證器
     public function checkParameter()
