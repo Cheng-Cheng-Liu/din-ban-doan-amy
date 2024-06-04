@@ -19,8 +19,8 @@ class Oishii implements RestaurantInterface
 
 
 
-        // $url = 'http://neil.xincity.xyz:9998/api/menu/all';
-        $url = 'http://220.128.133.15/s1120214/api.php';
+        $url = 'http://neil.xincity.xyz:9998/oishii/api/menu/all';
+        // $url = 'http://220.128.133.15/s1120214/api.php';
 
         curl_setopt_array($curl, [
             CURLOPT_URL => $url,
