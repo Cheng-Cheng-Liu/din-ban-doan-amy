@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use App\Models\CreditPayRecord;
 use App\Models\Wallet;
+use App\Models\WalletLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -100,38 +101,62 @@ class PaymentController extends Controller
 
         // 把資料寫入credit_pay_records
         if ($position == false) {
-            $user=Auth::user();
-            $creditPayRecord=new CreditPayRecord;
-            $creditPayRecord->user_id=$user->id;
-            $creditPayRecord->payment_type=$payment_type;
-            $creditPayRecord->merchant_id=$merchant_id;
-            $creditPayRecord->merchant_trade_no=$merchant_trade_no;
-            $creditPayRecord->amount=$amount;
-            $creditPayRecord->trade_desc=$trade_desc;
-            $creditPayRecord->item_name=$item_name;
-            $creditPayRecord->check_mac_value=$check_mac_value;
-            $creditPayRecord->status=0;
-            $creditPayRecord->remark="";
-            $creditPayRecord->payment_date=$merchant_trade_date;
-            $creditPayRecord->trade_date=$merchant_trade_date;
-            if(!$creditPayRecord->save()){
+            $user = Auth::user();
+            $creditPayRecord = new CreditPayRecord;
+            $creditPayRecord->user_id = $user->id;
+            $creditPayRecord->payment_type = $payment_type;
+            $creditPayRecord->merchant_id = $merchant_id;
+            $creditPayRecord->merchant_trade_no = $merchant_trade_no;
+            $creditPayRecord->amount = $amount;
+            $creditPayRecord->trade_desc = $trade_desc;
+            $creditPayRecord->item_name = $item_name;
+            $creditPayRecord->check_mac_value = $check_mac_value;
+            $creditPayRecord->status = 0;
+            $creditPayRecord->remark = "";
+            $creditPayRecord->payment_date = $merchant_trade_date;
+            $creditPayRecord->trade_date = $merchant_trade_date;
+            if (!$creditPayRecord->save()) {
                 return response()->json(['error' => 1002]);
             }
-        }{
-            Log::channel('credit')->info('your_message');
+        } {
+            Log::channel('credit')->info($server_output);
         }
 
 
-        return response()->json(['error' =>$server_output]);
+        return response()->json(['error' => $server_output]);
     }
 
 
     function rechargeResult(Request $request)
     {
+        
         $check_mac_value = $request->input('check_mac_value');
-        echo $check_mac_value;
+        Log::channel('credit')->info("check_mac_value".$check_mac_value);
+        // // check_mac_value一致
+        // $creditPayRecord = CreditPayRecord::where("check_mac_value", '=', $check_mac_value)->get();
+        // Log::channel('credit')->info($creditPayRecord);
+        // if ($creditPayRecord) {
+        //     // credit_pay_record.status改成trade_status的值
+        //     $creditPayRecord->status = $request->input('rtn_code');
+        //     $creditPayRecord->save();
+        //     if ($request->input('rtn_code')) {
+        //         // 增加wallet_logs紀錄，wallet_logs.balance更新到wallets
+        //         $walletLog = new WalletLog;
+        //         $walletLog->credit_pay_record_id = $creditPayRecord->id;
+        //         $walletLog->user_id = Auth::user()->id;
+        //         $wallet = Wallet::where("user_id", "=", Auth::user()->id)->where("wallet_type = 1")->get();
+        //         $walletLog->wallet_id = $wallet->id;
+        //         $walletLog->order_id = "";
+        //         $walletLog->amount = $request->input('amount');
+        //         $wallet_last_balance = WalletLog::where("user_id", "=", Auth::user()->id)->get(['balance'])->toArray();
+        //         $walletLog->balance = intval($wallet_last_balance["balance"]) + intval($request->input('amount'));
+        //         $walletLog->status = 1;
+        //         $walletLog->remark = "";
+        //         $walletLog->save();
+        //         return response()->json(['received' => true]);
+        //     }
+        // }
     }
-
 
     // 驗證器
     public function checkParameter()
