@@ -44,3 +44,8 @@ Route::post('/email/verification-notification', function (Request $request) {
 Route::get('/mail', function(){
     Mail::to('juliet6124amy@gmail.com')->send(new HelloMail());
 });
+
+
+Route::get('/pay', function(){
+    return view("pay");
+});

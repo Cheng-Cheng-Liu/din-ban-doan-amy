@@ -22,7 +22,7 @@ class PaymentController extends Controller
         }
         // 訂單編號
         $date = Carbon::now();
-        $now = $date->format('YmdHisu');
+        $now = $date->format('YmdHis');
         $trade_no = "mypay" . (string)$now;
         // 生成檢查碼
         $amount = $this->amount;
@@ -52,13 +52,14 @@ class PaymentController extends Controller
         sort($row);
         $rowString = "";
         foreach ($row as $one) {
-            $rowString .= $one;
+            $add=$one."&";
+            $rowString .= $add;
         }
-        $rowCheck = "hash_key=61533ba5927296cd&" . $rowString . "&hash_iv=ffb5b7effb04eb95";
+        $rowCheck = "hash_key=61533ba5927296cd&" . $rowString . "hash_iv=ffb5b7effb04eb95";
         // urlencode
         $urlencodeRow = $this->ecpayUrlEncode($rowCheck);
         // hash256
-        $hashRow = hash_hmac("sha256", $urlencodeRow, env('SHA256_SECRET'));
+        $hashRow = hash("sha256", $urlencodeRow);
         $check_mac_value = strtoupper($hashRow);
         // curl
         $data=[
@@ -91,13 +92,19 @@ class PaymentController extends Controller
 
         curl_close($ch);
 
-        return response()->json(['error' =>$server_output]);
+
+
+        return response()->json(['error' =>$server_output ]);
     }
+
+
     function rechargeResult(Request $request)
     {
         $check_mac_value = $request->input('check_mac_value');
         echo $check_mac_value;
     }
+
+
     // 驗證器
     public function checkParameter()
     {
