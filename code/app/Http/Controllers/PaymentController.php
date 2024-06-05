@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use App\Models\CreditPayRecord;
+use App\Models\Wallet;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -37,22 +41,22 @@ class PaymentController extends Controller
         $return_url = "http://localhost:8082/api/wallet/recharge/result";
         $trade_desc = "購買商品 1";
         $row = [
-        "amount=" . $amount,
-        "choose_payment=" . $choose_payment,
-        "encrypt_type=" . $encrypt_type,
-        "item_name=" . $item_name,
-        "lang=" . $lang,
-        "merchant_id=" . $merchant_id,
-        "merchant_trade_date=" . $merchant_trade_date,
-        "merchant_trade_no=" . $merchant_trade_no,
-        "payment_type=" . $payment_type,
-        "return_url=" . $return_url,
-        "trade_desc=" . $trade_desc
+            "amount=" . $amount,
+            "choose_payment=" . $choose_payment,
+            "encrypt_type=" . $encrypt_type,
+            "item_name=" . $item_name,
+            "lang=" . $lang,
+            "merchant_id=" . $merchant_id,
+            "merchant_trade_date=" . $merchant_trade_date,
+            "merchant_trade_no=" . $merchant_trade_no,
+            "payment_type=" . $payment_type,
+            "return_url=" . $return_url,
+            "trade_desc=" . $trade_desc
         ];
         sort($row);
         $rowString = "";
         foreach ($row as $one) {
-            $add=$one."&";
+            $add = $one . "&";
             $rowString .= $add;
         }
         $rowCheck = "hash_key=61533ba5927296cd&" . $rowString . "hash_iv=ffb5b7effb04eb95";
@@ -62,19 +66,19 @@ class PaymentController extends Controller
         $hashRow = hash("sha256", $urlencodeRow);
         $check_mac_value = strtoupper($hashRow);
         // curl
-        $data=[
-        "amount"=>$amount,
-        "choose_payment"=> $choose_payment,
-        "encrypt_type"=> $encrypt_type,
-        "item_name"=> $item_name,
-        "lang" => $lang,
-        "merchant_id" => $merchant_id,
-        "merchant_trade_date" => $merchant_trade_date,
-        "merchant_trade_no"=> $merchant_trade_no,
-        "payment_type" => $payment_type,
-        "return_url" => $return_url,
-        "trade_desc" => $trade_desc,
-        "check_mac_value"=>$check_mac_value
+        $data = [
+            "amount" => $amount,
+            "choose_payment" => $choose_payment,
+            "encrypt_type" => $encrypt_type,
+            "item_name" => $item_name,
+            "lang" => $lang,
+            "merchant_id" => $merchant_id,
+            "merchant_trade_date" => $merchant_trade_date,
+            "merchant_trade_no" => $merchant_trade_no,
+            "payment_type" => $payment_type,
+            "return_url" => $return_url,
+            "trade_desc" => $trade_desc,
+            "check_mac_value" => $check_mac_value
         ];
 
         $ch = curl_init();
@@ -92,9 +96,33 @@ class PaymentController extends Controller
 
         curl_close($ch);
 
+        $position = strpos($server_output, "error");
+
+        // 把資料寫入credit_pay_records
+        if ($position == false) {
+            $user=Auth::user();
+            $creditPayRecord=new CreditPayRecord;
+            $creditPayRecord->user_id=$user->id;
+            $creditPayRecord->payment_type=$payment_type;
+            $creditPayRecord->merchant_id=$merchant_id;
+            $creditPayRecord->merchant_trade_no=$merchant_trade_no;
+            $creditPayRecord->amount=$amount;
+            $creditPayRecord->trade_desc=$trade_desc;
+            $creditPayRecord->item_name=$item_name;
+            $creditPayRecord->check_mac_value=$check_mac_value;
+            $creditPayRecord->status=0;
+            $creditPayRecord->remark="";
+            $creditPayRecord->payment_date=$merchant_trade_date;
+            $creditPayRecord->trade_date=$merchant_trade_date;
+            if(!$creditPayRecord->save()){
+                return response()->json(['error' => 1002]);
+            }
+        }{
+            Log::channel('credit')->info('your_message');
+        }
 
 
-        return response()->json(['error' =>$server_output ]);
+        return response()->json(['error' =>$server_output]);
     }
 
 

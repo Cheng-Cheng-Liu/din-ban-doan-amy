@@ -50,7 +50,7 @@ return [
     |                    "custom", "stack"
     |
     */
-
+    
     'channels' => [
         'stack' => [
             'driver' => 'stack',
@@ -125,6 +125,10 @@ return [
 
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
+        ],
+        'credit' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/credit/credit.log'),
         ],
     ],
 

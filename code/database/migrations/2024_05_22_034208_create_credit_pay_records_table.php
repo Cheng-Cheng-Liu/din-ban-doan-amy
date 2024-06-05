@@ -13,16 +13,14 @@ return new class extends Migration
     {
         Schema::create('credit_pay_records', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger("wallet_log_id");
-            $table->foreign('wallet_log_id')->references('id')->on('wallet_logs');
+            $table->unsignedBigInteger("user_id");
+            $table->foreign('user_id')->references('id')->on('users');
             $table->string('payment_type',15);
             $table->integer('merchant_id');
             $table->string('merchant_trade_no',255);
-            $table->string('card_no',255);
             $table->integer('amount');
             $table->string('trade_desc',255);
             $table->string('item_name',255);
-            $table->string('choose_payment',255);
             $table->string('check_mac_value',255);
             $table->tinyInteger('status');
             $table->string('remark',255);

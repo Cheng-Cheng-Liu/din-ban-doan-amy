@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('wallet_logs', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger("credit_pay_record_id");
+            $table->foreign('credit_pay_record_id')->references('id')->on('credit_pay_records');
             $table->unsignedBigInteger("user_id");
             $table->foreign('user_id')->references('id')->on('users');
             $table->unsignedBigInteger("wallet_id");

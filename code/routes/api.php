@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\Restaurant;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,7 +41,10 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::get('/restaurants', [RestaurantController::class, 'get_member_restaurants']);
     // 金流
     Route::post('/wallets/recharge', [PaymentController::class, 'recharge']);
-
+    Route::get('/user', function(){
+        $user=Auth::user();
+        echo $user->id;
+    });
 });
 Route::prefix('back')->middleware(['auth:back'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
