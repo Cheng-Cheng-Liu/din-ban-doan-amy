@@ -5,10 +5,17 @@ namespace App\Services\Restaurants;
 use Illuminate\Http\Request;
 use App\Models\Meal;
 use App\Contracts\RestaurantInterface;
+use App\Models\Restaurant;
 
 class Oishii implements RestaurantInterface
 {
-    public $id = 3;
+    public $id;
+    public function __construct()
+    {
+        $response = Restaurant::where('service', '=', 'SteakHome')->get(['id'])->first();
+        $this->id = $response["id"];
+    }
+
 
     public function get_meals()
     {

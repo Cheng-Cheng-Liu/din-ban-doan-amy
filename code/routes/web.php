@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Http\Controllers\RestaurantController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\HelloMail;
+use Illuminate\Support\Facades\Log;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -48,4 +49,10 @@ Route::get('/mail', function(){
 
 Route::get('/pay', function(){
     return view("pay");
+});
+Route::get('/clean', function(){
+    return view("clean");
+});
+Route::post('wallet/recharge/result', function(Request $request){
+    Log::channel('credit')->info($request);
 });

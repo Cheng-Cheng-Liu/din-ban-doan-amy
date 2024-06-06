@@ -18,9 +18,9 @@
                     type: "POST",
                     contentType: "application/json",
                     headers: {
-                        "Authorization": "Bearer " + "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODIvYXBpL2xvZ2luIiwiaWF0IjoxNzE3NTc3MDYxLCJleHAiOjE3MTc1ODQyNjEsIm5iZiI6MTcxNzU3NzA2MSwianRpIjoiOXpXRzRqVnFVbnNHbVE5RCIsInN1YiI6IjEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.AwKX-sZXjxTT28I2oXL0iwp3Ux1IVmgd6FCf_BtcWxA"
+                        "Authorization": "Bearer " + "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODIvYXBpL2xvZ2luIiwiaWF0IjoxNzE3NjM1NzYzLCJleHAiOjE3MTc3MDc3NjMsIm5iZiI6MTcxNzYzNTc2MywianRpIjoiQ0gzRGx0OVZPSVN0ZmZ5ZyIsInN1YiI6IjEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.25oKyI_Ui8fdq1vo9BwEQMCy782X4mfqtDy4tonFKxw"
                     },
-                    data: JSON.stringify({ "amount": 1000 }),
+                    data: JSON.stringify({ "amount": 700 }),
                     success: function(data) {
                         // 成功后获取返回的 URL
                         let response = JSON.parse(data.error);
@@ -28,6 +28,7 @@
 
                         // 使用返回的 URL 进行重定向
                         window.location.href = redirectUrl;
+                        // console.log(redirectUrl)
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
                         console.error("请求失败: " + textStatus, errorThrown);

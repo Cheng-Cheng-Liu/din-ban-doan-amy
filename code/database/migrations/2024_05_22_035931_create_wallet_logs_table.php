@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users');
             $table->unsignedBigInteger("wallet_id");
             $table->foreign('wallet_id')->references('id')->on('wallets');
-            $table->unsignedBigInteger("order_id");
+            $table->unsignedBigInteger("order_id")->nullable();
             $table->foreign('order_id')->references('id')->on('orders');
             $table->integer('amount');
             $table->integer('balance');

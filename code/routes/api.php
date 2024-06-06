@@ -7,6 +7,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\MealController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Order;
 use Carbon\Carbon;
@@ -31,8 +32,8 @@ Route::post('login', [LoginController::class, 'memberLogin']);
 Route::post('login_back', [LoginController::class, 'adminLogin']);
 // 金流
 Route::post('wallet/recharge/result', [PaymentController::class, 'rechargeResult']);
-// Route::post('wallet/recharge/result', function(){
-//     Redis::set("this_is_wallet","");
+// Route::post('wallet/recharge/result', function(Request $request){
+//     Log::channel('credit')->info($request);
 // });
 
 
@@ -45,6 +46,7 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
         $user=Auth::user();
         echo $user->id;
     });
+    Route::post('/orders', [OrderController::class, 'create_order']);
 });
 Route::prefix('back')->middleware(['auth:back'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
@@ -53,3 +55,6 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 
 Route::get('/saveMeal', [MealController::class, 'saveMeal']);
 
+Route::post('test', function(Request $request){
+    Log::channel('credit')->info($request);
+});

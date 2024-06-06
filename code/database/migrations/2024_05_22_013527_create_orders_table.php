@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users');
             $table->unsignedBigInteger("restaurant_id");
             $table->foreign('restaurant_id')->references('id')->on('restaurants');
+            $table->string('name',255);
             $table->string('another_id',255);
             $table->string('choose_payment',255);
             $table->integer('amount');
