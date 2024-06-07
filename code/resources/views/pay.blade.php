@@ -18,7 +18,7 @@
                     type: "POST",
                     contentType: "application/json",
                     headers: {
-                        "Authorization": "Bearer " + "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODIvYXBpL2xvZ2luIiwiaWF0IjoxNzE3NjM1NzYzLCJleHAiOjE3MTc3MDc3NjMsIm5iZiI6MTcxNzYzNTc2MywianRpIjoiQ0gzRGx0OVZPSVN0ZmZ5ZyIsInN1YiI6IjEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.25oKyI_Ui8fdq1vo9BwEQMCy782X4mfqtDy4tonFKxw"
+                        "Authorization": "Bearer " + "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODIvYXBpL2xvZ2luIiwiaWF0IjoxNzE3NzIzMTM4LCJleHAiOjE3MTc3OTUxMzgsIm5iZiI6MTcxNzcyMzEzOCwianRpIjoiQkYxbHBZQ3RwVzNrRkhDbSIsInN1YiI6IjEiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3In0.QenPEc3iV5vHqwC4h2mNlJEQZdEH35MvDUdy8F8lSEE"
                     },
                     data: JSON.stringify({ "amount": 700 }),
                     success: function(data) {

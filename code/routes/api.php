@@ -9,6 +9,7 @@ use App\Http\Controllers\MealController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Auth;
+use App\Models\WalletLog;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -55,6 +56,12 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 
 Route::get('/saveMeal', [MealController::class, 'saveMeal']);
 
-Route::post('test', function(Request $request){
-    Log::channel('credit')->info($request);
+Route::post('test', function(){
+    $wallet_last_balance = WalletLog::where("user_id", "=", 1)->where("status", "=", 1)->where("wallet_type", "=", 1)->first();
+                if ($wallet_last_balance == null) {
+                    $wallet_last_balance_balance = 0;
+                } else {
+                    $wallet_last_balance_balance = $wallet_last_balance->balance;
+                }
+
 });

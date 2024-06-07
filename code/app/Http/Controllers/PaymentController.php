@@ -40,7 +40,7 @@ class PaymentController extends Controller
         $merchant_trade_date = $date->format('Y/m/d H:i:s');
         $merchant_trade_no = $trade_no;
         $payment_type = "aio";
-        $return_url = "http://localhost:8082/api/wallet/recharge/result";
+        $return_url = "http://192.168.83.28:9999/api/wallet/recharge/result";
         $trade_desc = "購買商品 1";
         $row = [
             "amount=" . $amount,
@@ -120,7 +120,7 @@ class PaymentController extends Controller
                 return response()->json(['error' => 1002]);
             }
         } else {
-            Log::channel('credit')->info("server_output".$server_output);
+            Log::channel('credit')->info("server_output" . $server_output);
         }
 
 
@@ -130,35 +130,20 @@ class PaymentController extends Controller
 
     function rechargeResult(Request $request)
     {
-
+        Log::channel('credit')->info($request);
         $check_mac_value = $request->input('check_mac_value');
         // Log::channel('credit')->info("check_mac_value".$check_mac_value);
         // check_mac_value一致
-        $creditPayRecord = CreditPayRecord::where("check_mac_value", '=', $check_mac_value)->first();
-        Log::channel('credit')->info($creditPayRecord);
-        if ($creditPayRecord) {
-            $user = CreditPayRecord::where("check_mac_value", '=', $check_mac_value)->first()->user_id;
+        $my_check_mac_value = $this->checkMacValue($request->all());
+        if ($my_check_mac_value==$check_mac_value) {
+            $user = CreditPayRecord::where("merchant_trade_no", '=', $request->input('merchant_trade_no'))->first()->user_id;
             // credit_pay_record.status改成trade_status的值
-            $creditPayRecordRtn = CreditPayRecord::where("check_mac_value", '=', $check_mac_value)->first();
+            $creditPayRecordRtn = CreditPayRecord::where("merchant_trade_no", '=', $request->input('merchant_trade_no'))->first();
             $creditPayRecordRtn->status = $request->input('rtn_code');
             $creditPayRecordRtn->save();
 
             if ($request->input('rtn_code')) {
-                // 確認這筆成功的信用卡紀錄是否已寫入過wallet_logs
-                // $value=WalletLog::where("check_mac_value", '=', $check_mac_value)->first()->credit_pay_record_id;
-                $credit_pay_record_id = CreditPayRecord::where("check_mac_value", '=', $check_mac_value)->first()->id;
-
-                $walletLogRepeat = WalletLog::where("user_id", "=", $user)->where("credit_pay_record_id", "=", $credit_pay_record_id)->first();
-
-                if ($walletLogRepeat) {
-                    Log::channel('credit')->info("repeat credit_pay_record_id" . $walletLogRepeat->credit_pay_record_id);
-
-                    return response()->json(['received' => 1]);
-                }
-                // 增加wallet_logs紀錄，wallet_logs.balance更新到wallets
-                $walletLog = new WalletLog;
-                $walletLog->credit_pay_record_id = $creditPayRecord->id;
-                $walletLog->user_id = $user;
+                // 如果該會員沒錢包先創一個錢包
                 $wallet = Wallet::where("user_id", "=", $user)->where("status", "=", 1)->where("wallet_type", "=", 1)->first();
                 if ($wallet == null) {
                     $addWallet = new Wallet;
@@ -168,27 +153,43 @@ class PaymentController extends Controller
                     $addWallet->wallet_type = 1;
                     $addWallet->remark = "";
                     $addWallet->save();
-                    $wallet = Wallet::where("user_id", "=", $user)->where("status", "=", 1)->where("wallet_type", "=", 1)->first();
                 }
-                $walletLog->wallet_id = $wallet->id;
+                Log::channel('credit')->info("rtn_code" .  $request->input('rtn_code'));
+                // 確認這筆成功的信用卡紀錄是否已寫入過wallet_logs
+                // $value=WalletLog::where("check_mac_value", '=', $check_mac_value)->first()->credit_pay_record_id;
+                $credit_pay_record_id = CreditPayRecord::where("merchant_trade_no", '=', $request->input('merchant_trade_no'))->first()->id;
+
+                $walletLogRepeat = WalletLog::where("user_id", "=", $user)->where("credit_pay_record_id", "=", $credit_pay_record_id)->first();
+                
+                if ($walletLogRepeat) {
+                    Log::channel('credit')->info("repeat credit_pay_record_id" . $walletLogRepeat->credit_pay_record_id);
+
+                    return response()->json(['received' => 1]);
+                }
+                // 增加wallet_logs紀錄
+                $walletLog = new WalletLog;
+                $walletLog->credit_pay_record_id =CreditPayRecord::where("merchant_trade_no", '=', $request->input('merchant_trade_no'))->first()->id;
+                $walletLog->user_id = $user;
+                $wallet2 = Wallet::where("user_id", "=", $user)->where("status", "=", 1)->where("wallet_type", "=", 1)->first();
+                $walletLog->wallet_id = $wallet2->id;
                 $walletLog->order_id = null;
                 $walletLog->amount = $request->input('amount');
-                $wallet_last_balance = WalletLog::where("user_id", "=", $user)->where("status", "=", 1)->first();
+                $wallet_last_balance = WalletLog::where("user_id", "=", $user)->where("status", "=", 1)->orderBy('id', 'desc')->first();
                 if ($wallet_last_balance == null) {
                     $wallet_last_balance_balance = 0;
                 } else {
                     $wallet_last_balance_balance = $wallet_last_balance->balance;
                 }
+                Log::channel('credit')->info("server_output" .  $wallet_last_balance_balance);
                 $walletLog->balance = (int)$wallet_last_balance_balance + (int)$request->input('amount');
-                $balance=$walletLog->balance;
+                $balance = $walletLog->balance;
                 $walletLog->status = 1;
                 $walletLog->remark = "";
                 $walletLog->save();
+                // wallet_logs.balance更新到wallets
                 $walletRenew = Wallet::where("user_id", "=", $user)->where("status", "=", 1)->first();
-                $walletRenew->balance = DB::select("SELECT SUM(`amount`) FROM wallet_logs WHERE `status`=1 and `user_id` = $user GROUP BY `user_id`");
-                if($walletRenew->balance!=$balance){
-                    Log::channel('credit')->info("balance wrong");
-                }
+                $walletRenew->balance = WalletLog::where("user_id", "=", $user)->where("status", "=", 1)->orderBy('id', 'desc')->first()->balance;
+                $walletRenew->save();
 
                 return response()->json(['received' => 1]);
             }
@@ -249,5 +250,30 @@ class PaymentController extends Controller
         $replaced = str_replace($search, $replace, $source);
 
         return $replaced;
+    }
+    // check_mac_value驗證器
+    // input [] output string
+    public function checkMacValue($rows)
+    {
+
+        $row = [];
+        foreach ($rows as $key => $value) {
+            if($key!= "check_mac_value"){
+                $row[] = $key . '=' . $value;
+            }
+        }
+        sort($row);
+        $rowString = "";
+        foreach ($row as $one) {
+            $add = $one . "&";
+            $rowString .= $add;
+        }
+        $rowCheck = "hash_key=61533ba5927296cd&" . $rowString . "hash_iv=ffb5b7effb04eb95";
+        // urlencode
+        $urlencodeRow = $this->ecpayUrlEncode($rowCheck);
+        // hash256
+        $hashRow = hash("sha256", $urlencodeRow);
+        $check_mac_value = strtoupper($hashRow);
+        return $check_mac_value;
     }
 }
