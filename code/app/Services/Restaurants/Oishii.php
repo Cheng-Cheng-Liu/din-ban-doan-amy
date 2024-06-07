@@ -12,7 +12,7 @@ class Oishii implements RestaurantInterface
     public $id;
     public function __construct()
     {
-        $response = Restaurant::where('service', '=', 'SteakHome')->get(['id'])->first();
+        $response = Restaurant::where('service', '=', 'Oishii')->get(['id'])->first();
         $this->id = $response["id"];
     }
 

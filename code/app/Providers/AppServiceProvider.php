@@ -22,14 +22,14 @@ class AppServiceProvider extends ServiceProvider
             // } else {
             //     return new Oishii();
             // }
-            switch (request()->input('restaurant')) {
-                case "SteakHome":
+            switch (request()->input('restaurant_id')) {
+                case 1:
                     return new SteakHome();
                     break;
-                case "Oishii":
+                case 2:
                     return new Oishii();
                     break;
-                case "Tasty":
+                case 3:
                     return new Tasty();
                     break;
                 default:

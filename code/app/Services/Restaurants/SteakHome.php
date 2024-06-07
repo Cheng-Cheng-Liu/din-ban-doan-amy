@@ -71,8 +71,38 @@ class SteakHome implements RestaurantInterface
             }
         }
     }
-    public function send_order()
+    public function send_order($user_name, $phone, $restaurant_id, $amount, $status, $remark, $pick_up_time, $created_time, $detail, $uuid)
     {
-        return "";
+        // curl
+        $detailMeal=[];
+        $i=0;
+        foreach($detail as $meal){
+            $detailMeal[$i]["ID"]=$meal['another_id'];
+            $detailMeal[$i]["NOTE"]=$meal['meal_remark'];
+            $i++;
+        }
+        $data = [
+            "OID" => $uuid,
+            "NA" => $user_name,
+            "PH_NUM" => $phone,
+            "TOL_PRC" => $amount,
+            "LS" => $detailMeal
+        ];
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "http://neil.xincity.xyz:9998/steak_home/api/mk/order");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt(
+            $ch,
+            CURLOPT_POSTFIELDS,
+            http_build_query($data)
+        );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $server_output = curl_exec($ch);
+
+        curl_close($ch);
+        return $server_output;
     }
 }

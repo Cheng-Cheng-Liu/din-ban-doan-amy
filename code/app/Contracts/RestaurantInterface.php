@@ -10,6 +10,6 @@ public function get_meals();
 
 // send order to restaurant's api
 
-public function send_order();
+public function send_order($user_name,$phone,$restaurant_id,$amount,$status,$remark,$pick_up_time,$created_time,$detail,$uuid);
 }
 
