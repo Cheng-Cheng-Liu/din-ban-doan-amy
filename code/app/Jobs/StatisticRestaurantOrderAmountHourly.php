@@ -37,17 +37,26 @@ class StatisticRestaurantOrderAmountHourly implements ShouldQueue
         $formattedDateDash = $date->format('Y-m-d');
         $hour_now = $date->format('H');
         $hour = $hour_now - 1;
-
+        $sql = "
+        SELECT restaurants.id as 'restaurant_id', IFNULL(total_amount, 0) as 'total_amount'
+        FROM restaurants
+        LEFT JOIN (
+            SELECT restaurant_id, SUM(amount) as total_amount
+            FROM orders
+            WHERE orders.created_at BETWEEN ? AND ?
+            AND orders.status=1
+            GROUP BY restaurant_id
+        ) A ON restaurants.id = A.restaurant_id
+        where restaurants.status=1
+    ";
         $start = $formattedDateDash . " " . $hour . ":00:00";
         $stop = $formattedDateDash . " " . $hour . ":59:59";
-        $Order_amount_sum_hourly = Order::select('restaurant_id', DB::raw('SUM(amount) as total_amount'))
-            ->whereBetween('created_at', [$start, $stop])
-            ->groupBy('restaurant_id')
-            ->get();
-
-        foreach ($Order_amount_sum_hourly as $oneRestaurant) {
+        $results = DB::select($sql, [$start, $stop]);
+        $order_amount_sum_hourly = json_decode(json_encode($results), true);
+// 有序排列，分數=>小時
+        foreach ($order_amount_sum_hourly as $oneRestaurant) {
             $key = $oneRestaurant['restaurant_id'] . $formattedDate;
-            Redis::rpush($key, $oneRestaurant['total_amount']);
+            Redis::zadd($key, $hour,$oneRestaurant['total_amount']);
         }
     }
 }

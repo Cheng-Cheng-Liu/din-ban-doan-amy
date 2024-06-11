@@ -8,6 +8,7 @@ use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\MealController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\WalletLog;
 use App\Models\Order;
@@ -58,6 +59,9 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
 });
 Route::prefix('back')->middleware(['auth:back'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
+    Route::prefix('/report')->middleware(['auth:back'])->group(function () {
+        Route::post('/members', [ReportController::class, 'restaurantOrderAmount']);
+    });
 });
 
 
