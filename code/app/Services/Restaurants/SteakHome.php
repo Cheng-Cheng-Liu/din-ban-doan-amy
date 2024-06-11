@@ -103,6 +103,11 @@ class SteakHome implements RestaurantInterface
         $server_output = curl_exec($ch);
 
         curl_close($ch);
-        return $server_output;
+        if($server_output=='{"ERR":0}'){
+            $response=0;
+        }else{
+            $response=3002;
+        }
+        return $response;
     }
 }

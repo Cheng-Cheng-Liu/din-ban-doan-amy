@@ -5,6 +5,7 @@ namespace App\Services\Restaurants;
 use App\Contracts\RestaurantInterface;
 use App\Models\Meal;
 use App\Models\Restaurant;
+use Carbon\Carbon;
 
 class Tasty implements RestaurantInterface
 {
@@ -68,8 +69,47 @@ class Tasty implements RestaurantInterface
             }
         }
     }
-    public function send_order()
+    public function send_order($user_name, $phone, $restaurant_id, $amount, $status, $remark, $pick_up_time, $created_time, $detail, $uuid)
     {
-        return "";
+        // curl
+        $detailMeal = [];
+        $i = 0;
+        foreach ($detail as $meal) {
+            $detailMeal[$i]["id"] = $meal['another_id'];
+            $detailMeal[$i]["count"] = $meal['quantity'];
+            $detailMeal[$i]["memo"] = $meal['meal_remark'];
+            $i++;
+        }
+        $date = Carbon::parse($pick_up_time);
+        $formattedDate = $date->format('Y-m-d\TH:i:sP');
+        $data = [
+            "order_id" => $uuid,
+            "name" =>$user_name,
+            "phone_number" => $phone,
+            "pickup_time" => $formattedDate,
+            "total_price" => $amount,
+            "list" => $detailMeal
+        ];
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, "http://neil.xincity.xyz:9998/tasty/api/order");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt(
+            $ch,
+            CURLOPT_POSTFIELDS,
+            http_build_query($data)
+        );
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $server_output = curl_exec($ch);
+
+        curl_close($ch);
+        if($server_output=='{"success":true,"error_code":0}'){
+            $response=0;
+        }else{
+            $response=3002;
+        }
+        return $response;
     }
 }
