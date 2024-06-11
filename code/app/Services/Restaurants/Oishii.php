@@ -59,7 +59,7 @@ class Oishii implements RestaurantInterface
                 $meal->price = $oneMeal->price;
                 $meal->status = 1;
                 $meal->save();
-            } {
+            }else {
                 $meal = Meal::where('restaurant_id', $restaurantId)
                     ->where('another_id', $oneMeal->meal_id)
                     ->update([

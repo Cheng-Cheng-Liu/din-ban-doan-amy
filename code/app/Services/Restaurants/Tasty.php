@@ -58,7 +58,7 @@ class Tasty implements RestaurantInterface
                     $meal->price = $oneMeal->price;
                     $meal->status = 1;
                     $meal->save();
-                } {
+                }else {
                     $meal = Meal::where('restaurant_id', $restaurantId)
                         ->where('another_id', $oneMeal->id)
                         ->update([

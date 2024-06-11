@@ -11,6 +11,7 @@ use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\WalletLog;
 use App\Models\Order;
+use App\Models\Wallet;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\Restaurant;
@@ -48,6 +49,12 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
         echo $user->id;
     });
     Route::post('/orders', [OrderController::class, 'create_order']);
+    Route::post('/test', function(){
+        $wallets=Wallet::where('user_id',"=",Auth::user()->id)->orderBy("wallet_type","desc")->get()->toArray();
+        foreach($wallets as $wallet){
+            return $wallet['id'];
+        }
+    });
 });
 Route::prefix('back')->middleware(['auth:back'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
@@ -56,12 +63,3 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 
 Route::get('/saveMeal', [MealController::class, 'saveMeal']);
 
-Route::post('test', function(){
-    $wallet_last_balance = WalletLog::where("user_id", "=", 1)->where("status", "=", 1)->where("wallet_type", "=", 1)->first();
-                if ($wallet_last_balance == null) {
-                    $wallet_last_balance_balance = 0;
-                } else {
-                    $wallet_last_balance_balance = $wallet_last_balance->balance;
-                }
-
-});

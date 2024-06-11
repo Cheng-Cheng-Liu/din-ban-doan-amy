@@ -61,7 +61,7 @@ class SteakHome implements RestaurantInterface
                 $meal->price = $oneMeal->PRC;
                 $meal->status = 1;
                 $meal->save();
-            } {
+            } else{
                 $meal = Meal::where('restaurant_id', $restaurantId)
                     ->where('another_id', $oneMeal->ID)
                     ->update([
@@ -69,6 +69,8 @@ class SteakHome implements RestaurantInterface
                         'price' => $oneMeal->PRC,
                     ]);
             }
+
+
         }
     }
     public function send_order($user_name, $phone, $restaurant_id, $amount, $status, $remark, $pick_up_time, $created_time, $detail, $uuid)
