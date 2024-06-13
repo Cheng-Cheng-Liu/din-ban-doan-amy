@@ -45,14 +45,14 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::get('/restaurants', [RestaurantController::class, 'get_member_restaurants']);
     // 金流
     Route::post('/wallets/recharge', [PaymentController::class, 'recharge']);
-    Route::get('/user', function(){
-        $user=Auth::user();
+    Route::get('/user', function () {
+        $user = Auth::user();
         echo $user->id;
     });
     Route::post('/orders', [OrderController::class, 'create_order']);
-    Route::post('/test', function(){
-        $wallets=Wallet::where('user_id',"=",Auth::user()->id)->orderBy("wallet_type","desc")->get()->toArray();
-        foreach($wallets as $wallet){
+    Route::post('/test', function () {
+        $wallets = Wallet::where('user_id', "=", Auth::user()->id)->orderBy("wallet_type", "desc")->get()->toArray();
+        foreach ($wallets as $wallet) {
             return $wallet['id'];
         }
     });
@@ -66,4 +66,5 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 
 
 Route::get('/saveMeal', [MealController::class, 'saveMeal']);
+
 

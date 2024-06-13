@@ -35,7 +35,7 @@ class StatisticRestaurantOrderAmountHourly implements ShouldQueue
 
         $formattedDate = $date->format('Ymd');
         $formattedDateDash = $date->format('Y-m-d');
-        $hour_now = $date->format('H');
+        $hour_now = intval($date->format('H'));
         $hour = $hour_now - 1;
         $sql = "
         SELECT restaurants.id as 'restaurant_id', IFNULL(total_amount, 0) as 'total_amount'
@@ -53,10 +53,10 @@ class StatisticRestaurantOrderAmountHourly implements ShouldQueue
         $stop = $formattedDateDash . " " . $hour . ":59:59";
         $results = DB::select($sql, [$start, $stop]);
         $order_amount_sum_hourly = json_decode(json_encode($results), true);
-// 有序排列，分數=>小時
+// 有序排列，分數->數量，值->時間
         foreach ($order_amount_sum_hourly as $oneRestaurant) {
             $key = $oneRestaurant['restaurant_id'] . $formattedDate;
-            Redis::zadd($key, $hour,$oneRestaurant['total_amount']);
+            Redis::zadd($key, $oneRestaurant['total_amount'],$hour);
         }
     }
 }
