@@ -6,6 +6,7 @@ use App\Contracts\RestaurantInterface;
 use App\Models\Meal;
 use App\Models\Restaurant;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class Tasty implements RestaurantInterface
 {
@@ -20,28 +21,8 @@ class Tasty implements RestaurantInterface
     public function get_meals()
     {
 
-        $curl = curl_init();
-
-
-
-
-
-        $url = 'http://neil.xincity.xyz:9998/tasty/api/menu';
-        // $url = 'http://220.128.133.15/s1120214/api.php';
-
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-        ]);
-
-
-        $response = curl_exec($curl);
-
-
-        curl_close($curl);
-
-
-        $getMeal = json_decode($response);
+        $response = Http::get(env('RESTAURANT_TASTY_DOMAIN').'/api/menu');
+        $getMeal = $response->object();
         $restaurantId = $this->id;
         $existMealId = Meal::where('restaurant_id', $restaurantId)
             ->get(['another_id'])->toArray();
@@ -69,8 +50,9 @@ class Tasty implements RestaurantInterface
             }
         }
     }
-    public function send_order($user_name, $phone, $restaurant_id, $amount, $status, $remark, $pick_up_time, $created_time, $detail, $uuid)
+    public function send_order($data)
     {
+        extract($data);
         // curl
         $detailMeal = [];
         $i = 0;

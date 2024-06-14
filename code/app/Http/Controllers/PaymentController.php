@@ -16,11 +16,11 @@ use Exception;
 class PaymentController extends Controller
 {
     public $amount;
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->amount = $request->input('amount');
     }
-    function recharge()
+    function recharge(Request $request)
     {
         // 檢查參數正確嗎?
         $checkParameter = $this->checkParameter();

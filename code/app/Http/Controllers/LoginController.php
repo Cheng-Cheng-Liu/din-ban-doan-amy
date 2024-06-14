@@ -70,29 +70,6 @@ class LoginController extends Controller
                 return response()->json(['error' => 1002]);
             }
 
-            // 刪除”取得會員的啟用中全部餐廳”這支api的redis資料
-            Redis::del('myrestaurant' . $id);
-            // 生成要給”取得會員的啟用中全部餐廳”這支api的redis資料
-            $myRestaurantData = DB::select('
-            SELECT restaurants.id as "id", restaurants.name as "name", restaurants.phone as "phone",
-            restaurants.opening_time as "opening_time",
-            restaurants.closing_time as "closing_time",
-            restaurants.rest_day as "rest_day",
-            restaurants.avg_score as "avg_score",
-            restaurants.total_comments_count as "total_comments_count",
-            CASE WHEN A.id IS NULL THEN FALSE ELSE TRUE END AS "favorite"
-            FROM restaurants LEFT JOIN (select * from favorites where user_id = ?)A ON restaurants.id = A.restaurant_id WHERE restaurants.status = 1
-            ORDER BY restaurants.priority ASC, id ASC', [$id]);
-            $total = count($myRestaurantData);
-
-            $myRestaurant = [
-                "total" => $total,
-                "list" => $myRestaurantData
-
-            ];
-            $jsonData = json_encode($myRestaurant);
-            Redis::set('myrestaurant' . $id, $jsonData);
-
 
             // 成功，回傳相關訊息
             return $this->respondWithToken($token);

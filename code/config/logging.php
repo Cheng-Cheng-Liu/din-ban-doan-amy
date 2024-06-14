@@ -130,6 +130,10 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/credit/credit.log'),
         ],
+        'getMeal' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/restaurant/getMeal.log'),
+        ],
     ],
 
 ];

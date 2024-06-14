@@ -7,6 +7,7 @@ use App\Models\Meal;
 use App\Contracts\RestaurantInterface;
 use App\Models\Restaurant;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class Oishii implements RestaurantInterface
 {
@@ -21,28 +22,8 @@ class Oishii implements RestaurantInterface
     public function get_meals()
     {
 
-        $curl = curl_init();
-
-
-
-
-
-        $url = 'http://neil.xincity.xyz:9998/oishii/api/menu/all';
-        // $url = 'http://220.128.133.15/s1120214/api.php';
-
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-        ]);
-
-
-        $response = curl_exec($curl);
-
-
-        curl_close($curl);
-
-
-        $getMeal = json_decode($response);
+        $response = Http::get(env('RESTAURANT_OISHII_DOMAIN')."/api/menu/all");
+        $getMeal = $response->object();
         $restaurantId = $this->id;
         $existMealId = Meal::where('restaurant_id', $restaurantId)
             ->get(['another_id'])->toArray();
@@ -59,7 +40,7 @@ class Oishii implements RestaurantInterface
                 $meal->price = $oneMeal->price;
                 $meal->status = 1;
                 $meal->save();
-            }else {
+            } else {
                 $meal = Meal::where('restaurant_id', $restaurantId)
                     ->where('another_id', $oneMeal->meal_id)
                     ->update([
@@ -69,8 +50,10 @@ class Oishii implements RestaurantInterface
             }
         }
     }
-    public function send_order($user_name, $phone, $restaurant_id, $amount, $status, $remark, $pick_up_time, $created_time, $detail, $uuid)
+    public function send_order($data)
     {
+        extract($data);
+
         // curl
         $detailMeal = [];
         $i = 0;
@@ -93,10 +76,10 @@ class Oishii implements RestaurantInterface
             "total_price" => $amount,
             "orders" => $detailMeal
         ];
-
+$url=env('RESTAURANT_URL').'/api/notify/order';
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, "http://neil.xincity.xyz:9998/oishii/");
+        curl_setopt($ch, CURLOPT_URL,$url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt(
             $ch,
@@ -108,10 +91,10 @@ class Oishii implements RestaurantInterface
         $server_output = curl_exec($ch);
 
         curl_close($ch);
-        if($server_output==''){
-            $response=0;
-        }else{
-            $response=3002;
+        if ($server_output == '') {
+            $response = 0;
+        } else {
+            $response = 3002;
         }
         return $response;
     }

@@ -31,4 +31,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'test_url' => env('TEST_URL', 'https://default.example.com'),
+    'restaurant'=>[
+        'oishii'=>env('RESTAURANT_OISHII_DOMAIN'),
+        'steakhome'=>env('RESTAURANT_STEAKHOME_DOMAIN'),
+        'tasty'=>env('RESTAURANT_TASTY_DOMAIN'),
+    ]
 ];

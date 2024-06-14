@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Restaurant;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,6 +62,7 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
     Route::prefix('/report')->middleware(['auth:back'])->group(function () {
         Route::post('/members', [ReportController::class, 'restaurantOrderAmount']);
+        Route::post('/statisticPersonalAccessTokenLogCountHourly', [ReportController::class, 'statisticPersonalAccessTokenLogCountHourly']);
     });
 });
 
@@ -68,3 +70,10 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 Route::get('/saveMeal', [MealController::class, 'saveMeal']);
 
 
+Route::get('/test', function(){
+    $response = Http::get(env('TEST_URL').'/api2.php');
+    
+// $response = Http::get('http://220.128.133.15/s1120214/api2.php');
+    $value=$response->object();
+    var_dump($value) ;
+});

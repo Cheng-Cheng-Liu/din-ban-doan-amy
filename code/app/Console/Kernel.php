@@ -21,21 +21,14 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // 統計每小時會員登入報表
-        $schedule->job(new StatisticPersonalAccessTokenLogCountHourly,'reports','redis')->hourly();
+        // $schedule->job(new StatisticPersonalAccessTokenLogCountHourly,'reports','redis')->everyMinute();
+
         // 統計每小時各家餐廳的訂單總額度
-        $schedule->job(new StatisticRestaurantOrderAmountHourly,'reports','redis')->everyMinute();
-
-
+        // $schedule->job(new StatisticRestaurantOrderAmountHourly,'reports','redis')->hourly();
 
         // 每日自動更新餐點
-        // $schedule->job(new GetMeal())->daily();
+        $schedule->job(new GetMeal())->everyMinute();
 
-
-// $schedule->command('inspire')->hourly();
-        // $schedule->call(function () {
-        //     // 在调度任务中发送邮件
-        //     Mail::to('juliet6124amy@gmail.com')->send(new HelloMail());
-        // })->everyMinute();
 
 
     }

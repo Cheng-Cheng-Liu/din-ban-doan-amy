@@ -42,7 +42,6 @@ class StatisticPersonalAccessTokenLogCountHourly implements ShouldQueue
 
 
         $personal_access_token_log_count_hourly = PersonalAccessTokenLog::whereBetween('login_time', [$start, $stop])->count();
-        Redis::rpush($formattedDate, $personal_access_token_log_count_hourly);
-
+        Redis::zadd("StatisticPersonalAccessTokenLogCountHourly".$formattedDate, $personal_access_token_log_count_hourly,$hour);
     }
 }
