@@ -26,7 +26,7 @@ class SteakHome implements RestaurantInterface
 
 
         // 有連線成功的話
-        $response = Http::get(env('RESTAURANT_STEAKHOME_DOMAIN') . '/api/menu/ls');
+        $response = Http::get(config('services.restaurant.steakhome') . '/api/menu/ls');
         if ($response->failed()) {
             $json = $response->throw()->json();
             Log::channel('getMeal')->info("steakHome_error" . $json);
@@ -65,16 +65,16 @@ class SteakHome implements RestaurantInterface
     public function send_order($data)
     {
         extract($data);
-        // curl
+
         $detailMeal = [];
         $i = 0;
-        
+
         foreach ($detail as $meal) {
             $detailMeal[$i]["ID"] = $meal['another_id'];
             $detailMeal[$i]["NOTE"] = $meal['meal_remark'];
             $i++;
         }
-        
+
         $data = [
             "OID" => $uuid,
             "NA" => $user_name,
@@ -83,22 +83,10 @@ class SteakHome implements RestaurantInterface
             "LS" => $detailMeal
         ];
 
-        // $ch = curl_init();
 
-        // curl_setopt($ch, CURLOPT_URL, "http://neil.xincity.xyz:9998/steak_home/api/mk/order");
-        // curl_setopt($ch, CURLOPT_POST, 1);
-        // curl_setopt(
-        //     $ch,
-        //     CURLOPT_POSTFIELDS,
-        //     http_build_query($data)
-        // );
-        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        // $server_output = curl_exec($ch);
+        $server_output = Http::post(config('services.restaurant.steakhome') . '/api/mk/order', $data);
 
-        // curl_close($ch);
-        $server_output = Http::post(env('RESTAURANT_STEAKHOME_DOMAIN') . '/api/menu/ls', $data);
-        
         if ($server_output->failed()) {
             $json = $server_output->throw()->json();
             Log::channel('getMeal')->info("steakHome_error" . $json);
@@ -108,6 +96,7 @@ class SteakHome implements RestaurantInterface
         } else {
             $response = 3002;
         }
+
         return $response;
     }
 }

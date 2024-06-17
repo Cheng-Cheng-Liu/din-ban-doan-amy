@@ -12,27 +12,22 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use App\Services\CheckMacValue;
+use App\Http\Requests\PaymentRequest;
+use Illuminate\Support\Facades\Http;
 
 class PaymentController extends Controller
 {
     public $amount;
-    public function __construct()
+
+    function recharge(PaymentRequest $request)
     {
-        $this->amount = $request->input('amount');
-    }
-    function recharge(Request $request)
-    {
-        // 檢查參數正確嗎?
-        $checkParameter = $this->checkParameter();
-        if ($checkParameter->fails()) {
-            return response()->json(['error' => 1001]);
-        }
         // 訂單編號
         $date = Carbon::now();
         $now = $date->format('YmdHis');
         $trade_no = "mypay" . (string)$now;
         // 生成檢查碼
-        $amount = $this->amount;
+        $amount = $request->input('amount');
         $choose_payment = "Credit";
         $encrypt_type = 1;
         $item_name = "product 1";
@@ -44,31 +39,23 @@ class PaymentController extends Controller
         $return_url = "http://192.168.83.28:9999/api/wallet/recharge/result";
         $trade_desc = "購買商品 1";
         $row = [
-            "amount=" . $amount,
-            "choose_payment=" . $choose_payment,
-            "encrypt_type=" . $encrypt_type,
-            "item_name=" . $item_name,
-            "lang=" . $lang,
-            "merchant_id=" . $merchant_id,
-            "merchant_trade_date=" . $merchant_trade_date,
-            "merchant_trade_no=" . $merchant_trade_no,
-            "payment_type=" . $payment_type,
-            "return_url=" . $return_url,
-            "trade_desc=" . $trade_desc
+            "amount" => $amount,
+            "choose_payment" => $choose_payment,
+            "encrypt_type" => $encrypt_type,
+            "item_name" => $item_name,
+            "lang" => $lang,
+            "merchant_id" => $merchant_id,
+            "merchant_trade_date" => $merchant_trade_date,
+            "merchant_trade_no" => $merchant_trade_no,
+            "payment_type" => $payment_type,
+            "return_url" => $return_url,
+            "trade_desc" => $trade_desc
         ];
-        sort($row);
-        $rowString = "";
-        foreach ($row as $one) {
-            $add = $one . "&";
-            $rowString .= $add;
-        }
-        $rowCheck = "hash_key=61533ba5927296cd&" . $rowString . "hash_iv=ffb5b7effb04eb95";
-        // urlencode
-        $urlencodeRow = $this->ecpayUrlEncode($rowCheck);
-        // hash256
-        $hashRow = hash("sha256", $urlencodeRow);
-        $check_mac_value = strtoupper($hashRow);
-        // curl
+        // 生成check_mac_value
+        $checkMacValue = new CheckMacValue;
+        $check_mac_value = $checkMacValue->index($row);
+
+        // http client
         $data = [
             "amount" => $amount,
             "choose_payment" => $choose_payment,
@@ -83,26 +70,18 @@ class PaymentController extends Controller
             "trade_desc" => $trade_desc,
             "check_mac_value" => $check_mac_value
         ];
+        $server_output = Http::post(config('services.recharge_url'), $data);
+        $response_json = $server_output->throw()->json();
 
-        $ch = curl_init();
+        if (array_key_exists('transaction_url', $response_json)) {
+            $response = 0;
+        } else {
+            $response = 3002;
+        }
 
-        curl_setopt($ch, CURLOPT_URL, "http://neil.xincity.xyz:9997/api/Cashier/AioCheckOut");
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt(
-            $ch,
-            CURLOPT_POSTFIELDS,
-            http_build_query($data)
-        );
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        $server_output = curl_exec($ch);
-
-        curl_close($ch);
-
-        $position = strpos($server_output, "error");
-
-        // 把資料寫入credit_pay_records
-        if ($position == false) {
+        // // 把資料寫入credit_pay_records
+        if ($response == 0) {
             $user = Auth::user();
             $creditPayRecord = new CreditPayRecord;
             $creditPayRecord->user_id = $user->id;
@@ -125,7 +104,7 @@ class PaymentController extends Controller
         }
 
 
-        return response()->json(['error' => $server_output]);
+        return response()->json(['error' => $response]);
     }
 
 
@@ -134,7 +113,8 @@ class PaymentController extends Controller
         Log::channel('credit')->info($request);
         $check_mac_value = $request->input('check_mac_value');
         // 自己計算一次check_mac_value
-        $my_check_mac_value = $this->checkMacValue($request->all());
+        $checkMacValue = new CheckMacValue;
+        $my_check_mac_value = $checkMacValue->index($request->all());
         // check_mac_value一致
         if ($my_check_mac_value == $check_mac_value) {
             $user = CreditPayRecord::where("merchant_trade_no", '=', $request->input('merchant_trade_no'))->first()->user_id;
@@ -201,86 +181,5 @@ class PaymentController extends Controller
                 return response()->json(['received' => 1]);
             }
         }
-    }
-
-    // 驗證器
-    public function checkParameter()
-    {
-        $validator = Validator::make([
-            'amount' => $this->amount,
-        ], [
-            'amount' => 'required|integer',
-        ]);
-        return $validator;
-    }
-    /**
-     * URL 編碼
-     *
-     * @param  string $source
-     * @return string
-     */
-    public static function ecpayUrlEncode($source)
-    {
-        $encoded = urlencode($source);
-        $lower = strtolower($encoded);
-        $dotNetFormat = self::toDotNetUrlEncode($lower);
-
-        return $dotNetFormat;
-    }
-
-    /**
-     * 轉換為 .net URL 編碼結果
-     *
-     * @param  string $source
-     * @return string
-     */
-    public static function toDotNetUrlEncode($source)
-    {
-        $search = [
-            '%2d',
-            '%5f',
-            '%2e',
-            '%21',
-            '%2a',
-            '%28',
-            '%29',
-        ];
-        $replace = [
-            '-',
-            '_',
-            '.',
-            '!',
-            '*',
-            '(',
-            ')',
-        ];
-        $replaced = str_replace($search, $replace, $source);
-
-        return $replaced;
-    }
-    // check_mac_value驗證器
-    // input [] output string
-    public function checkMacValue($rows)
-    {
-
-        $row = [];
-        foreach ($rows as $key => $value) {
-            if ($key != "check_mac_value") {
-                $row[] = $key . '=' . $value;
-            }
-        }
-        sort($row);
-        $rowString = "";
-        foreach ($row as $one) {
-            $add = $one . "&";
-            $rowString .= $add;
-        }
-        $rowCheck = "hash_key=61533ba5927296cd&" . $rowString . "hash_iv=ffb5b7effb04eb95";
-        // urlencode
-        $urlencodeRow = $this->ecpayUrlEncode($rowCheck);
-        // hash256
-        $hashRow = hash("sha256", $urlencodeRow);
-        $check_mac_value = strtoupper($hashRow);
-        return $check_mac_value;
     }
 }

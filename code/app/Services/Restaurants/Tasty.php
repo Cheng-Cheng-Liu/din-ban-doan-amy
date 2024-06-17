@@ -7,6 +7,7 @@ use App\Models\Meal;
 use App\Models\Restaurant;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class Tasty implements RestaurantInterface
 {
@@ -21,7 +22,7 @@ class Tasty implements RestaurantInterface
     public function get_meals()
     {
 
-        $response = Http::get(env('RESTAURANT_TASTY_DOMAIN').'/api/menu');
+        $response = Http::get(env('services.restaurant.tasty').'/api/menu');
         $getMeal = $response->object();
         $restaurantId = $this->id;
         $existMealId = Meal::where('restaurant_id', $restaurantId)
@@ -73,24 +74,16 @@ class Tasty implements RestaurantInterface
             "list" => $detailMeal
         ];
 
-        $ch = curl_init();
+        $server_output = Http::post(config('services.restaurant.tasty') . '/api/order', $data);
 
-        curl_setopt($ch, CURLOPT_URL, "http://neil.xincity.xyz:9998/tasty/api/order");
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt(
-            $ch,
-            CURLOPT_POSTFIELDS,
-            http_build_query($data)
-        );
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $server_output = curl_exec($ch);
-
-        curl_close($ch);
-        if($server_output=='{"success":true,"error_code":0}'){
-            $response=0;
-        }else{
-            $response=3002;
+        if ($server_output->failed()) {
+            $json = $server_output->throw()->json();
+            Log::channel('getMeal')->info("steakHome_error" . $json);
+        }
+        if ($server_output == '{"ERR":0}') {
+            $response = 0;
+        } else {
+            $response = 3002;
         }
         return $response;
     }

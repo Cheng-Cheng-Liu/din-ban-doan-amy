@@ -76,7 +76,7 @@ class OrderController extends Controller
             "detail"=>$detail,
             "uuid"=>$uuid
         ]);
-        echo "here";
+
         if ($restaurantResponse != 0) {
             return response()->json(['error' => $restaurantResponse]);
         }

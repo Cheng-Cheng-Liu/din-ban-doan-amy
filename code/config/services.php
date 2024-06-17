@@ -32,9 +32,14 @@ return [
     ],
 
     'test_url' => env('TEST_URL', 'https://default.example.com'),
-    'restaurant'=>[
-        'oishii'=>env('RESTAURANT_OISHII_DOMAIN'),
-        'steakhome'=>env('RESTAURANT_STEAKHOME_DOMAIN'),
-        'tasty'=>env('RESTAURANT_TASTY_DOMAIN'),
-    ]
+    'restaurant' => [
+        'oishii' => env('RESTAURANT_OISHII_DOMAIN'),
+        'steakhome' => env('RESTAURANT_STEAKHOME_DOMAIN'),
+        'tasty' => env('RESTAURANT_TASTY_DOMAIN'),
+    ],
+
+    'hash_key' => env('HASH_KEY'),
+    'hash_iv' => env('HASH_IV'),
+
+    'recharge_url' => env('RECHARGE_URL'),
 ];

@@ -19,7 +19,7 @@ use App\Models\Restaurant;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-
+use App\Services\CheckMacValue;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -70,10 +70,8 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 Route::get('/saveMeal', [MealController::class, 'saveMeal']);
 
 
-Route::get('/test', function(){
-    $response = Http::get(env('TEST_URL').'/api2.php');
-    
-// $response = Http::get('http://220.128.133.15/s1120214/api2.php');
-    $value=$response->object();
-    var_dump($value) ;
+Route::post('/test', function(Request $request){
+    $checkMacValue= new CheckMacValue;
+    $check_mac_value=$checkMacValue->index($request->all());
+    echo $check_mac_value;
 });
