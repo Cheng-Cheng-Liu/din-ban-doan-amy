@@ -31,7 +31,7 @@ use App\Services\CheckMacValue;
 |
 */
 
-Route::post('register', [RegisterController::class, 'index']);
+Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [LoginController::class, 'memberLogin']);
 Route::post('login_back', [LoginController::class, 'adminLogin']);
 // 金流

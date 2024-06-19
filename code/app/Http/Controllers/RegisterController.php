@@ -3,109 +3,87 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use App\Models\User;
+use App\Models\Wallet;
+
 
 class RegisterController extends Controller
 {
-    public $name;
-    public $nickname;
-    public $email;
-    private $password;
-    public $phone;
+    public function register(Request $request)
+    {
+        $email = $request -> input('email');
+        $name = $request -> input('name');
+        $nickname = $request -> input('nickname');
+        $password = $request -> input('password');
+        $phone = $request -> input('phone');
 
-    public function __construct(Request $request)
-    {
-        $this->email = $request->input('email');
-        $this->name = $request->input('name');
-        $this->nickname = $request->input('nickname');
-        $this->password = $request->input('password');
-        $this->phone = $request->input('phone');
-    }
-    public function index()
-    {
         // 檢查參數正確嗎?
-        $checkParameter = $this->checkParameter();
-        if ($checkParameter->fails()) {
-            return response()->json(['error'=>1001]);
-        }
-        // 檢查email是不是已註冊完成
-        $checkEmailVertifiedAtNotNull = $this->checkEmailVertifiedAtNotNull();
-
-        if ($checkEmailVertifiedAtNotNull) {
-            return  response()->json(['error' => 2003]);
-
-        }
-        // users資料表有沒有這個email
-        $checkEmailExist = $this->checkEmailExist();
-        if ($checkEmailExist) {
-            $user = $checkEmailExist;
-            // 更新資料庫name、password欄位
-            $user->update([
-                'name' => $this->name,
-                'nickname' => $this-> nickname,
-                'password' => bcrypt($this->password),
-                'phone' => $this->phone,
-            ]);
-            // 重寄認證信
-            $user->sendEmailVerificationNotification();
-            return  response()->json(['error' => 2003]);
-        } else {
-            // 插入name    、email   、     password  、status=1(啟用:1，停權:2)、nickname、phone、roles=[‘member’]
-            // 寄送認證信
-            $this->CreateUser();
-            return  response()->json(['error' => 2003]);
-        }
-    }
-
-    public function checkParameter()
-    {
         $validator = Validator::make([
-            'name' => $this->name,
-            'nickname' => $this->nickname,
-            'email' => $this->email,
-            'password' => $this->password,
-            'phone' => $this->phone,
+            'name' => $name,
+            'nickname' => $nickname,
+            'email' => $email,
+            'password' => $password,
+            'phone' => $phone,
         ], [
             'name' => 'required|string|max:255',
             'nickname' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
             'phone' => 'required|string|max:20',
-            'password' => ['required', Password::min(6)],
+            'password' => 'required|min:6',
         ]);
-        return $validator;
 
-    }
+        if ($validator -> fails()) {
+            return response() -> json(['error' => __('error.invalidParameters')]);
+        }
 
-    public function checkEmailVertifiedAtNotNull()
-    {
-        $user = User::where('email', $this->email)
-            ->whereNotNull('email_verified_at')
-            ->first();
-        return $user;
-    }
+        $user = User::where('email', '=', $email) -> first();
+        // 已經有這個email
+        if (!is_null($user)) {
+            // 檢查email是不是已註冊完成
+            $hasVerifiedEmail = $user -> hasVerifiedEmail();
+            if ($hasVerifiedEmail) {
+                return  response() -> json(['error' => __('error.emailAlreadyVerified')]);
+            }
+            // 更新資料庫name、password欄位
+            $user -> update([
+                'name' => $name,
+                'nickname' => $nickname,
+                'password' => bcrypt($password),
+                'phone' => $phone,
+            ]);
+            // 重寄認證信
+            $user -> sendEmailVerificationNotification();
 
-    public function checkEmailExist()
-    {
-        $user = User::where('email', $this->email)
-            ->first();
-        return $user;
-    }
+            // 返回最後成功訊息
+            return  response() -> json(['error' => __('error.pleaseVerifiedEmail')]);
+        }
 
+        // 沒有這個帳號的話
+        // 插入name、email、password、status=1(啟用:1，停權:2)、nickname、phone、roles=[‘member’]到users資料表
+        $user = new User;
+        $user -> email = $email;
+        $user -> name = $name;
+        $user -> nickname = $nickname;
+        $user -> password = bcrypt($password);
+        $user -> phone = $phone;
+        $user -> save();
 
-
-    public function CreateUser()
-    {
-        $user = User::create([
-            'email' => $this->email,
-            'name' => $this->name,
-            'nickname' => $this->nickname,
-            'password' => bcrypt($this->password),
-            'phone' => $this->phone,
-        ]);
+        // Register event寄送認證信
         event(new Registered($user));
 
+        // 做一個主錢包
+        $addWallet = new Wallet;
+        $addWallet -> user_id = $user -> id;
+        $addWallet -> balance = 0;
+        $addWallet -> status = 1;
+        $addWallet -> wallet_type = 1;
+        $addWallet -> remark = '';
+        $addWallet -> save();
+
+        // 返回最後成功訊息
+        return  response() -> json(['error' => __('error.pleaseVerifiedEmail')]);
     }
 }
