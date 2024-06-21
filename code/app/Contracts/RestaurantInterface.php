@@ -6,11 +6,11 @@ interface RestaurantInterface {
 
 // return meal's id, name and price by restaurant's api
 
-public function get_meals();
+public function getMeals();
 
 // send order to restaurant's api
 
-public function send_order(array $order);
+public function sendOrder(array $order);
 
 
 }

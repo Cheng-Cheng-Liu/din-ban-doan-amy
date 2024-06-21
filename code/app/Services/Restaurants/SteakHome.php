@@ -11,39 +11,23 @@ use Illuminate\Support\Facades\Http;
 
 class SteakHome implements RestaurantInterface
 {
-
-
-
-    public $id;
-    public function __construct()
+    public function getMeals()
     {
-        $response = Restaurant::where('service', '=', 'SteakHome')->get(['id'])->first();
-        $this->id = $response["id"];
-    }
-
-    public function get_meals()
-    {
-
-
         // 有連線成功的話
         $response = Http::get(config('services.restaurant.steakhome') . '/api/menu/ls');
         if ($response->failed()) {
             $json = $response->throw()->json();
-            Log::channel('getMeal')->info("steakHome_error" . $json);
+            Log::channel('getMeal')->info('steakHome_error' . $json);
         }
-
-
 
         $getMeal = $response->object();
 
-        $restaurantId = $this->id;
+        $restaurantId = Restaurant::where('service', '=', 'SteakHome')->get(['id'])->first()->id;
         $existMealId = Meal::where('restaurant_id', $restaurantId)
             ->get(['another_id'])->toArray();
         $anotherIds = array_column($existMealId, 'another_id');
 
         foreach ($getMeal->LS as $oneMeal) {
-
-
             if (!in_array((string)$oneMeal->ID, $anotherIds)) {
                 $meal = new Meal();
                 $meal->restaurant_id = $restaurantId;
@@ -62,7 +46,8 @@ class SteakHome implements RestaurantInterface
             }
         }
     }
-    public function send_order($data)
+
+    public function sendOrder($data)
     {
         extract($data);
 
@@ -70,28 +55,27 @@ class SteakHome implements RestaurantInterface
         $i = 0;
 
         foreach ($detail as $meal) {
-            $detailMeal[$i]["ID"] = $meal['another_id'];
-            $detailMeal[$i]["NOTE"] = $meal['meal_remark'];
+            $detailMeal[$i]['ID'] = $meal['another_id'];
+            $detailMeal[$i]['NOTE'] = $meal['meal_remark'];
             $i++;
         }
 
         $data = [
-            "OID" => $uuid,
-            "NA" => $user_name,
-            "PH_NUM" => $phone,
-            "TOL_PRC" => $amount,
-            "LS" => $detailMeal
+            'OID' => $uuid,
+            'NA' => $user_name,
+            'PH_NUM' => $phone,
+            'TOL_PRC' => $amount,
+            'LS' => $detailMeal
         ];
 
+        $serverOutput = Http::post(config('services.restaurant.steakhome') . '/api/mk/order', $data);
 
-
-        $server_output = Http::post(config('services.restaurant.steakhome') . '/api/mk/order', $data);
-
-        if ($server_output->failed()) {
-            $json = $server_output->throw()->json();
-            Log::channel('getMeal')->info("steakHome_error" . $json);
+        if ($serverOutput->failed()) {
+            $json = $serverOutput->throw()->json();
+            Log::channel('getMeal')->info('steakHome_error' . $json);
         }
-        if ($server_output == '{"ERR":0}') {
+
+        if ($serverOutput == '{"ERR":0}') {
             $response = 0;
         } else {
             $response = 3002;

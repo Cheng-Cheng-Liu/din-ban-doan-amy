@@ -56,9 +56,11 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
         echo $user2->id;
     });
     Route::post('/test2', function () {
-        Cache::put('key2', 'value2', 600);
-        return Cache::get('key2');
-
+        $wallets = Wallet::where('user_id', '=', Auth::user()->id)->where('status', '=', 1)->orderBy('wallet_type', 'desc')->get()->toArray();
+        var_dump($wallets);
+        foreach ($wallets as $wallet) {
+            echo $wallet['id'];
+        }
     });
 });
 Route::prefix('back')->middleware(['auth:back'])->group(function () {
@@ -74,6 +76,7 @@ Route::get('/saveMeal', [MealController::class, 'saveMeal']);
 
 
 Route::post('/test', function(){
-    Cache::put('key5', 'value5', 600);
 
+    $wallets = Wallet::where('user_id', '=', Auth::user()->id)->where('status', '=', 1)->orderBy('wallet_type', 'desc')->get()->toArray();
+    var_dump($wallets);
 });

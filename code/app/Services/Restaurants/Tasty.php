@@ -11,26 +11,16 @@ use Illuminate\Support\Facades\Log;
 
 class Tasty implements RestaurantInterface
 {
-
-
-    public $id;
-    public function __construct()
+    public function getMeals()
     {
-        $response = Restaurant::where('service', '=', 'Tasty')->get(['id'])->first();
-        $this->id = $response["id"];
-    }
-    public function get_meals()
-    {
-
         $response = Http::get(env('services.restaurant.tasty').'/api/menu');
         $getMeal = $response->object();
-        $restaurantId = $this->id;
+        $restaurantId = Restaurant::where('service', '=', 'Tasty')->get(['id'])->first()->id;
         $existMealId = Meal::where('restaurant_id', $restaurantId)
             ->get(['another_id'])->toArray();
         $anotherIds = array_column($existMealId, 'another_id');
 
         foreach ($getMeal->data->list as $oneMeal) {
-
             if ($oneMeal->enable) {
                 if (!in_array((string)$oneMeal->id, $anotherIds)) {
                     $meal = new Meal();
@@ -51,36 +41,38 @@ class Tasty implements RestaurantInterface
             }
         }
     }
-    public function send_order($data)
+
+    public function sendOrder($data)
     {
         extract($data);
         // curl
         $detailMeal = [];
         $i = 0;
         foreach ($detail as $meal) {
-            $detailMeal[$i]["id"] = $meal['another_id'];
-            $detailMeal[$i]["count"] = $meal['quantity'];
-            $detailMeal[$i]["memo"] = $meal['meal_remark'];
+            $detailMeal[$i]['id'] = $meal['another_id'];
+            $detailMeal[$i]['count'] = $meal['quantity'];
+            $detailMeal[$i]['memo'] = $meal['meal_remark'];
             $i++;
         }
         $date = Carbon::parse($pick_up_time);
         $formattedDate = $date->format('Y-m-d\TH:i:sP');
         $data = [
-            "order_id" => $uuid,
-            "name" =>$user_name,
-            "phone_number" => $phone,
-            "pickup_time" => $formattedDate,
-            "total_price" => $amount,
-            "list" => $detailMeal
+            'order_id' => $uuid,
+            'name' =>$user_name,
+            'phone_number' => $phone,
+            'pickup_time' => $formattedDate,
+            'total_price' => $amount,
+            'list' => $detailMeal
         ];
 
-        $server_output = Http::post(config('services.restaurant.tasty') . '/api/order', $data);
+        $serverOutput = Http::post(config('services.restaurant.tasty') . '/api/order', $data);
 
-        if ($server_output->failed()) {
-            $json = $server_output->throw()->json();
-            Log::channel('getMeal')->info("steakHome_error" . $json);
+        if ($serverOutput->failed()) {
+            $json = $serverOutput->throw()->json();
+            Log::channel('getMeal')->info('Tasty_error' . $json);
         }
-        if ($server_output == '{"ERR":0}') {
+
+        if ($serverOutput == '{"success":true,"error_code":0}') {
             $response = 0;
         } else {
             $response = 3002;

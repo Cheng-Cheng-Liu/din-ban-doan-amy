@@ -121,7 +121,7 @@ class LoginController extends Controller
             ]);
 
         } else {
-            return response()->json(['error' => 2002]);
+            return response()->json(['error' => __('error.wrongAccountOrPassword')]);
         }
     }
 
