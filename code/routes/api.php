@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Services\CheckMacValue;
+use Illuminate\Support\Facades\Cache;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -46,16 +47,18 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::get('/restaurants', [RestaurantController::class, 'get_member_restaurants']);
     // 金流
     Route::post('/wallets/recharge', [PaymentController::class, 'recharge']);
-    Route::get('/user', function () {
-        $user = Auth::user();
-        echo $user->id;
-    });
     Route::post('/orders', [OrderController::class, 'create_order']);
     Route::post('/test', function () {
-        $wallets = Wallet::where('user_id', "=", Auth::user()->id)->orderBy("wallet_type", "desc")->get()->toArray();
-        foreach ($wallets as $wallet) {
-            return $wallet['id'];
-        }
+        $user = Auth::user();
+        echo $user->id;
+        auth()->logout();
+        $user2 = Auth::user();
+        echo $user2->id;
+    });
+    Route::post('/test2', function () {
+        Cache::put('key2', 'value2', 600);
+        return Cache::get('key2');
+
     });
 });
 Route::prefix('back')->middleware(['auth:back'])->group(function () {
@@ -70,8 +73,7 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 Route::get('/saveMeal', [MealController::class, 'saveMeal']);
 
 
-Route::post('/test', function(Request $request){
-    $checkMacValue= new CheckMacValue;
-    $check_mac_value=$checkMacValue->index($request->all());
-    echo $check_mac_value;
+Route::post('/test', function(){
+    Cache::put('key5', 'value5', 600);
+
 });
