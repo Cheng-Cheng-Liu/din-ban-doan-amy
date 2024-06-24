@@ -80,22 +80,25 @@ class PaymentController extends Controller
         // // 把資料寫入credit_pay_records
         if ($response == 0) {
             $user = Auth::user();
-            $creditPayRecord = new CreditPayRecord;
-            $creditPayRecord->user_id = $user->id;
-            $creditPayRecord->payment_type = $payment_type;
-            $creditPayRecord->merchant_id = $merchant_id;
-            $creditPayRecord->merchant_trade_no = $merchant_trade_no;
-            $creditPayRecord->amount = $amount;
-            $creditPayRecord->trade_desc = $trade_desc;
-            $creditPayRecord->item_name = $item_name;
-            $creditPayRecord->check_mac_value = $check_mac_value;
-            $creditPayRecord->status = 0;
-            $creditPayRecord->remark = '';
-            $creditPayRecord->payment_date = $merchant_trade_date;
-            $creditPayRecord->trade_date = $merchant_trade_date;
-            if (!$creditPayRecord->save()) {
+            $creditPayRecord = CreditPayRecord::create([
+                'user_id' => $user->id,
+                'payment_type' => $payment_type,
+                'merchant_id' => $merchant_id,
+                'merchant_trade_no' => $merchant_trade_no,
+                'amount' => $amount,
+                'trade_desc' => $trade_desc,
+                'item_name' => $item_name,
+                'check_mac_value' => $check_mac_value,
+                'status' => 0,
+                'remark' => '',
+                'payment_date' => $merchant_trade_date,
+                'trade_date' => $merchant_trade_date,
+            ]);
+
+            if (!$creditPayRecord) {
                 return response()->json(['error' => 'databaseExecError']);
             }
+
         } else {
             Log::channel('credit')->info('server_output' . $server_output);
         }
@@ -133,20 +136,18 @@ class PaymentController extends Controller
                 // wallets錢包更新
                 try {
                     $wallet = Wallet::where('user_id', '=', $userId)->where('status', '=', 1)->where('wallet_type', '=', 1)->first();
-                    $wallet->balance = $wallet->balance + $request->input('amount');
-                    $wallet->save();
+                    Wallet::where('user_id', $userId)
+                        ->where('status', 1)
+                        ->where('wallet_type', 1)
+                        ->update([
+                            'balance' => bcadd((string) $wallet->balance, (string) $request->input('amount'))
+                        ]);
                 } catch (Exception $e) {
                     Log::channel('credit')->info('wallet_logs' . $e);
                 }
 
                 // 增加wallet_logs紀錄
                 try {
-                    $walletLog = new WalletLog;
-                    $walletLog->credit_pay_record_id = $creditPayRecordId;
-                    $walletLog->user_id = $userId;
-                    $walletLog->wallet_id = $wallet->id;
-                    $walletLog->order_id = null;
-                    $walletLog->amount = $request->input('amount');
                     $lastWallet = WalletLog::where('user_id', '=', $userId)->where('status', '=', 1)->orderBy('id', 'desc')->first();
                     $lastWalletBalance = 0;
                     if ($lastWallet == null) {
@@ -154,10 +155,18 @@ class PaymentController extends Controller
                     } else {
                         $lastWalletBalance = $lastWallet->balance;
                     }
-                    $walletLog->balance = (int)$lastWalletBalance + (int)$request->input('amount');
-                    $walletLog->status = 1;
-                    $walletLog->remark = '';
-                    $walletLog->save();
+
+                    $balance = bcadd((string)$lastWalletBalance, (string)$request->input('amount'));
+                    WalletLog::create([
+                        'credit_pay_record_id' => $creditPayRecordId,
+                        'user_id' => $userId,
+                        'wallet_id' => $wallet->id,
+                        'order_id' => null,
+                        'amount' => $request->input('amount'),
+                        'balance' => $balance,
+                        'status' => 1,
+                        'remark' => '',
+                    ]);
                 } catch (Exception $e) {
                     Log::channel('credit')->info('wallet_logs' . $e);
                 }

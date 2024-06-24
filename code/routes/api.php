@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Services\CheckMacValue;
 use Illuminate\Support\Facades\Cache;
+use Tymon\JWTAuth\Facades\JWTAuth;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -37,9 +38,7 @@ Route::post('login', [LoginController::class, 'memberLogin']);
 Route::post('login_back', [LoginController::class, 'adminLogin']);
 // 金流
 Route::post('wallet/recharge/result', [PaymentController::class, 'rechargeResult']);
-// Route::post('wallet/recharge/result', function(Request $request){
-//     Log::channel('credit')->info($request);
-// });
+Route::get('restaurants', [RestaurantController::class, 'getRestaurants']);
 
 
 Route::prefix('member')->middleware(['auth:member'])->group(function () {
@@ -55,12 +54,10 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
         $user2 = Auth::user();
         echo $user2->id;
     });
-    Route::post('/test2', function () {
-        $wallets = Wallet::where('user_id', '=', Auth::user()->id)->where('status', '=', 1)->orderBy('wallet_type', 'desc')->get()->toArray();
-        var_dump($wallets);
-        foreach ($wallets as $wallet) {
-            echo $wallet['id'];
-        }
+    Route::post('/test2', function (Request $request) {
+        $token = $request->bearerToken();
+        $payload = JWTAuth::parseToken()->getPayload($token);
+    return $payload->get('jti');
     });
 });
 Route::prefix('back')->middleware(['auth:back'])->group(function () {
@@ -69,14 +66,14 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
         Route::post('/members', [ReportController::class, 'restaurantOrderAmount']);
         Route::post('/statisticPersonalAccessTokenLogCountHourly', [ReportController::class, 'statisticPersonalAccessTokenLogCountHourly']);
     });
+    Route::put('/restaurants/{id}', [RestaurantController::class, 'putRestaurant']);
 });
 
 
 Route::get('/saveMeal', [MealController::class, 'saveMeal']);
 
-
+Route::put('/test2', [RestaurantController::class, 'putRestaurant']);
 Route::post('/test', function(){
+    Redis::connection('db2')->lpush('mylist0624', 'data');
 
-    $wallets = Wallet::where('user_id', '=', Auth::user()->id)->where('status', '=', 1)->orderBy('wallet_type', 'desc')->get()->toArray();
-    var_dump($wallets);
 });

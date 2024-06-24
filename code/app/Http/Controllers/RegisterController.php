@@ -62,25 +62,25 @@ class RegisterController extends Controller
 
         // 沒有這個帳號的話
         // 插入name、email、password、status=1(啟用:1，停權:2)、nickname、phone、roles=[‘member’]到users資料表
-        $user = new User;
-        $user->email = $email;
-        $user->name = $name;
-        $user->nickname = $nickname;
-        $user->password = bcrypt($password);
-        $user->phone = $phone;
-        $user->save();
-
+        $user = User::create([
+            'email' => $email,
+            'name' => $name,
+            'nickname' => $nickname,
+            'password' => bcrypt($password),
+            'phone' => $phone
+        ]);
         // Register event寄送認證信
         event(new Registered($user));
 
         // 做一個主錢包
-        $addWallet = new Wallet;
-        $addWallet->user_id = $user->id;
-        $addWallet->balance = 0;
-        $addWallet->status = 1;
-        $addWallet->wallet_type = 1;
-        $addWallet->remark = '';
-        $addWallet->save();
+        Wallet::create([
+            'user_id' => $user->id,
+            'balance' => 0,
+            'status' => 1,
+            'wallet_type' => 1,
+            'remark' => ''
+        ]);
+
 
         // 返回最後成功訊息
         return  response()->json(['error' => __('error.pleaseVerifiedEmail')]);

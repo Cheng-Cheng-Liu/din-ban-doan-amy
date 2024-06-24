@@ -56,12 +56,12 @@ class LoginController extends Controller
         $id = Auth::user()->id;
         try {
             // 生成token並記錄在personal_access_tokens
-            $personal_access_token = new PersonalAccessToken;
-            $personal_access_token->tokenable_type = 'App\Models\User';
-            $personal_access_token->tokenable_id = $id;
-            $personal_access_token->name = 'front';
-            $personal_access_token->token = $lastPart;
-            $personal_access_token->save();
+            PersonalAccessToken::create([
+                'tokenable_type' => 'App\Models\User',
+                'tokenable_id' => $id,
+                'name' => 'front',
+                'token' => $lastPart,
+            ]);
         } catch (Exception $e) {
             // 回傳錯誤訊息
             return response()->json(['error' => 1002]);
@@ -101,15 +101,20 @@ class LoginController extends Controller
                 return  response()->json(['error' => 'memberStatusProblem']);
             }
 
-            $id = auth()->guard('web_admin')->user()->id;
+            $string = $token;
+            $parts = explode('.', $string);
+            $lastPart = end($parts);
+            $id = Auth::user()->id;
+
             try {
                 // 生成token並記錄在personal_access_tokens
-                $personal_access_token = new PersonalAccessToken;
-                $personal_access_token->tokenable_type = 'App\Models\Admin';
-                $personal_access_token->tokenable_id = $id;
-                $personal_access_token->name = 'back';
-                $personal_access_token->token = 'token';
-                $personal_access_token->save();
+                PersonalAccessToken::create([
+                    'tokenable_type' => 'App\Models\User',
+                    'tokenable_id' => $id,
+                    'name' => 'back',
+                    'token' => $lastPart,
+                ]);
+
             } catch (Exception $e) {
                 // 回傳錯誤訊息
                 return response()->json(['error' => 'databaseExecError']);
@@ -119,7 +124,6 @@ class LoginController extends Controller
                 'message' => 'Logged in successfully',
                 'token' => $token,
             ]);
-
         } else {
             return response()->json(['error' => __('error.wrongAccountOrPassword')]);
         }
@@ -144,7 +148,7 @@ class LoginController extends Controller
         $user = Auth::user();
         $id = $user->id;
         PersonalAccessToken::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\Admin')->delete();
-         // jwt套件登出方法，寫入memcached黑名單
+        // jwt套件登出方法，寫入memcached黑名單
         auth()->logout();
         return response()->json(['message' => 'Logged out successfully']);
     }
