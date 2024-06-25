@@ -5,46 +5,182 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Restaurant;
-use App\Services\Restaurants\Librarys\Restaurantlibrary;
+use App\Services\Restaurants\Librarys\RestaurantLibrary;
+use App\Services\Restaurants\Librarys\CommonLibrary;
+use App\Http\Requests\RestaurantRequest;
 
 class RestaurantController extends Controller
 {
-    //
-    // public function get_member_restaurants(Request $request)
-    // {
-    //     $user = Auth::user();
-    //     // $id=$user->id;
-    //     $id = 17;
-    //     $key = 'myrestaurant' . $id;
-    //     $myRestaurantData = Redis::get($key);
-    //     $myRestaurant = json_decode($myRestaurantData);
-    //     if (!empty($request->all())) {
-    //         $limit = $request->input("limit");
-    //         $offset = $request->input("offset");
-    //         $start = ($offset - 1) * $limit;
-    //         $limitRestaurant = [];
-    //         for ($i = $start; $i < $limit * $offset; $i++) {
-    //             $limitRestaurant[] = $myRestaurant->list[$i];
-    //         }
-    //         $myRestaurantNew = [
-    //             "total" => $myRestaurant->total,
-    //             "list" => $limitRestaurant
-    //         ];
-    //         return $myRestaurantNew;
-    //     } else {
-    //         return $myRestaurant;
-    //     }
-    // }
 
-    public function putRestaurant()
+    public function getRestaurants(Request $request)
     {
-        $restaurants=Restaurantlibrary::getAllStatusOneRestaurants();
-        foreach($restaurants as $restaurant){
-            $rId=str_pad((string)$restaurant['id'], 5, '0', STR_PAD_LEFT);
-            $score=$restaurant['priority'].$rId;
-            Redis::connection('db2')->zadd('all_status_one_restaurants',$score,'data');
+        // 總筆數
+        $total = Redis::connection('db2')->zcard('all_status_one_restaurants');
+        // 筆數
+        $limit = $request->input('limit') ? $request->input('limit') : $total;
+        // 第幾頁
+        $offset = $request->input('offset') ? $request->input('offset') : 1;
+        $page = CommonLibrary::page(['total' => $total, 'limit' => $limit, 'offset' => $offset]);
+        $start = $page['start'];
+        $stop = $page['stop'];
+        // 依分數由小到大排序取出redis裡的資料
+        $results = Redis::connection('db2')->zrange('all_status_one_restaurants', $start, $stop);
+        $list = [];
+        foreach ($results as $result) {
+            $docodeResult = json_decode($result);
+            $list[] = $docodeResult;
+        }
+        $data = [
+            'total' => $total,
+            'list' => $list,
+        ];
+
+        return response()->json($data);
+    }
+
+    public function getBackRestaurants(Request $request)
+    {
+        $restaurants = Restaurantlibrary::getAllRestaurants();
+        $total = count($restaurants);
+        // 筆數
+        $limit = $request->input('limit') ? $request->input('limit') : $total;
+        // 第幾頁
+        $offset = $request->input('offset') ? $request->input('offset') : 1;
+
+        $page = CommonLibrary::page(['total' => $total, 'limit' => $limit, 'offset' => $offset]);
+        $start = $page['start'];
+        $stop = $page['stop'];
+        $list = [];
+
+        foreach ($restaurants as $index => $restaurant) {
+
+            if ($index >= $start && $index <= $stop) {
+                $list[] = [
+                    'id' => $restaurant['id'],
+                    'name' => $restaurant['name'],
+                    'tag' => $restaurant['tag'],
+                    'phone' => $restaurant['phone'],
+                    'opening_time' => $restaurant['opening_time'],
+                    'closing_time' => $restaurant['closing_time'],
+                    'rest_day' => $restaurant['rest_day'],
+                    'avg_score' => $restaurant['avg_score'],
+                    'total_comments_count' => $restaurant['total_comments_count'],
+                    'status' => $restaurant['status'],
+                    'priority' => $restaurant['priority']
+                ];
+            }
         }
 
+        $data = [
+            'total' => $total,
+            'list' => $list,
+        ];
+
+        return response()->json($data);
+    }
+
+    public function getMemberRestaurants(Request $request)
+    {
+        $restaurants = Restaurantlibrary::getAllStatusOneMemberRestaurants(Auth::user()->id);
+        $total = count($restaurants);
+        // 筆數
+        $limit = $request->input('limit') ? $request->input('limit') : $total;
+        // 第幾頁
+        $offset = $request->input('offset') ? $request->input('offset') : 1;
+
+        $page = CommonLibrary::page(['total' => $total, 'limit' => $limit, 'offset' => $offset]);
+        $start = $page['start'];
+        $stop = $page['stop'];
+        $list = [];
+
+        foreach ($restaurants as $index => $restaurant) {
+
+            if ($index >= $start && $index <= $stop) {
+                $list[] = [
+                    'id' => $restaurant->id,
+                    'name' => $restaurant->name,
+                    'tag' => $restaurant->tag,
+                    'phone' => $restaurant->phone,
+                    'opening_time' => $restaurant->opening_time,
+                    'closing_time' => $restaurant->closing_time,
+                    'rest_day' => $restaurant->rest_day,
+                    'avg_score' => $restaurant->avg_score,
+                    'total_comments_count' => $restaurant->total_comments_count,
+                    'favorite' => $restaurant->favorite
+                ];
+            }
+        }
+
+        $data = [
+            'total' => $total,
+            'list' => $list,
+        ];
+
+        return response()->json($data);
+    }
+
+    public function addRestaurant(RestaurantRequest $request)
+    {
+        $requests = $request->all();
+        // 補齊其他值
+        $requests['avg_score'] = 0;
+        $requests['total_comments_count'] = 0;
+        // 更新資料庫
+        Restaurant::create($requests);
+        // 更新redis
+        Redis::connection('db2')->del('all_status_one_restaurants');
+        $restaurants = RestaurantLibrary::getAllStatusOneRestaurants();
+        foreach ($restaurants as $restaurant) {
+            // score是priority+id，例如priority=1，id=1，score=100001
+            $rId = str_pad((string)$restaurant['id'], 5, '0', STR_PAD_LEFT);
+            $score = $restaurant['priority'] . $rId;
+            $data = [
+                'id' => $restaurant['id'],
+                'name' => $restaurant['name'],
+                'tag' => $restaurant['tag'],
+                'phone' => $restaurant['phone'],
+                'opening_time' => $restaurant['opening_time'],
+                'closing_time' => $restaurant['closing_time'],
+                'rest_day' => $restaurant['rest_day'],
+                'avg_score' => $restaurant['avg_score'],
+                'total_comments_count' => $restaurant['total_comments_count'],
+            ];
+            $data = json_encode($data);
+            // data以json儲存
+            Redis::connection('db2')->zadd('all_status_one_restaurants', $score, $data);
+        }
+        return response()->json(['error' => __('error.success')]);
+    }
+
+    public function putRestaurant(RestaurantRequest $request, $id)
+    {
+        $requests = $request->all();
+        // 更新資料庫
+        Restaurant::find($id)->update($requests);
+        // 更新redis
+        Redis::connection('db2')->del('all_status_one_restaurants');
+        $restaurants = RestaurantLibrary::getAllStatusOneRestaurants();
+        foreach ($restaurants as $restaurant) {
+            // score是priority+id，例如priority=1，id=1，score=100001
+            $rId = str_pad((string)$restaurant['id'], 5, '0', STR_PAD_LEFT);
+            $score = $restaurant['priority'] . $rId;
+            $data = [
+                'id' => $restaurant['id'],
+                'name' => $restaurant['name'],
+                'tag' => $restaurant['tag'],
+                'phone' => $restaurant['phone'],
+                'opening_time' => $restaurant['opening_time'],
+                'closing_time' => $restaurant['closing_time'],
+                'rest_day' => $restaurant['rest_day'],
+                'avg_score' => $restaurant['avg_score'],
+                'total_comments_count' => $restaurant['total_comments_count'],
+            ];
+            $data = json_encode($data);
+            // data以json儲存
+            Redis::connection('db2')->zadd('all_status_one_restaurants', $score, $data);
+        }
+        return response()->json(['error' => __('error.success')]);
     }
 }

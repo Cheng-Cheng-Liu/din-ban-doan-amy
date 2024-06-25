@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'success' => '0',
     'invalidParameters' => '1001',
     'databaseExecError' => '1002',
     'emailAlreadyVerified' => '2001',

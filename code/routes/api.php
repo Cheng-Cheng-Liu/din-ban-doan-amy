@@ -33,12 +33,12 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 |
 */
 
-Route::post('register', [RegisterController::class, 'register']);
-Route::post('login', [LoginController::class, 'memberLogin']);
-Route::post('login_back', [LoginController::class, 'adminLogin']);
+Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/login', [LoginController::class, 'memberLogin']);
+Route::post('/login_back', [LoginController::class, 'adminLogin']);
 // 金流
-Route::post('wallet/recharge/result', [PaymentController::class, 'rechargeResult']);
-Route::get('restaurants', [RestaurantController::class, 'getRestaurants']);
+Route::post('/wallet/recharge/result', [PaymentController::class, 'rechargeResult']);
+Route::get('/restaurants', [RestaurantController::class, 'getRestaurants']);
 
 
 Route::prefix('member')->middleware(['auth:member'])->group(function () {
@@ -47,6 +47,7 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
     // 金流
     Route::post('/wallets/recharge', [PaymentController::class, 'recharge']);
     Route::post('/orders', [OrderController::class, 'create_order']);
+    Route::get('/restaurants', [RestaurantController::class, 'getMemberRestaurants']);
     Route::post('/test', function () {
         $user = Auth::user();
         echo $user->id;
@@ -57,7 +58,7 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::post('/test2', function (Request $request) {
         $token = $request->bearerToken();
         $payload = JWTAuth::parseToken()->getPayload($token);
-    return $payload->get('jti');
+        return $payload->get('jti');
     });
 });
 Route::prefix('back')->middleware(['auth:back'])->group(function () {
@@ -66,14 +67,13 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
         Route::post('/members', [ReportController::class, 'restaurantOrderAmount']);
         Route::post('/statisticPersonalAccessTokenLogCountHourly', [ReportController::class, 'statisticPersonalAccessTokenLogCountHourly']);
     });
+    Route::get('/restaurants', [RestaurantController::class, 'getBackRestaurants']);
+    Route::post('/restaurants', [RestaurantController::class, 'addRestaurant']);
     Route::put('/restaurants/{id}', [RestaurantController::class, 'putRestaurant']);
 });
 
 
 Route::get('/saveMeal', [MealController::class, 'saveMeal']);
 
-Route::put('/test2', [RestaurantController::class, 'putRestaurant']);
-Route::post('/test', function(){
-    Redis::connection('db2')->lpush('mylist0624', 'data');
 
-});
+Route::post('/test', [RestaurantController::class, 'addRestaurant']);
