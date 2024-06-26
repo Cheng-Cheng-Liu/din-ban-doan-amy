@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'web',
+        'guard' => 'member',
         'passwords' => 'users',
     ],
 
@@ -36,16 +36,7 @@ return [
     */
 
     'guards' => [
-        // 給登入
-        'web' => [
-            'driver' => 'jwt',
-            'provider' => 'users',
-        ],
-        'web_admin' => [
-            'driver' => 'jwt',
-            'provider' => 'admins'
-        ],
-// 給middleware
+
         'member' => [
             'driver' => 'jwt',
             'provider' => 'users',

@@ -12,6 +12,7 @@ use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\WalletLog;
 use App\Models\Order;
+use App\Models\Admin;
 use App\Models\Wallet;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,8 @@ use Illuminate\Support\Facades\Http;
 use App\Services\CheckMacValue;
 use Illuminate\Support\Facades\Cache;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\Restaurants\Librarys\RestaurantLibrary;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -70,10 +73,17 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
     Route::get('/restaurants', [RestaurantController::class, 'getBackRestaurants']);
     Route::post('/restaurants', [RestaurantController::class, 'addRestaurant']);
     Route::put('/restaurants/{id}', [RestaurantController::class, 'putRestaurant']);
+    Route::delete('/restaurants/{id}', [RestaurantController::class, 'deleteRestaurant']);
+    Route::get('/saveMeal', [MealController::class, 'saveMeal']);
+    Route::post('/test2', function (Request $request) {
+        $token = $request->bearerToken();
+        $payload = JWTAuth::parseToken()->getPayload($token);
+        return $payload->get('jti');
+    });
 });
 
 
-Route::get('/saveMeal', [MealController::class, 'saveMeal']);
+Route::get('/test', function () {
+    RestaurantLibrary::updateAllStatusOneMealsToRedis();
 
-
-Route::post('/test', [RestaurantController::class, 'addRestaurant']);
+});

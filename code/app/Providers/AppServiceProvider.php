@@ -3,10 +3,12 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Auth;
 use App\Contracts\RestaurantInterface;
 use App\Services\Restaurants\SteakHome;
 use App\Services\Restaurants\Oishii;
 use App\Services\Restaurants\Tasty;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,19 +19,15 @@ class AppServiceProvider extends ServiceProvider
     {
         //
         $this->app->bind(RestaurantInterface::class, function () {
-            // if (request()->input('restaurant') === 'SteakHome') {
-            //     return new SteakHome();
-            // } else {
-            //     return new Oishii();
-            // }
-            switch (request()->input('restaurant_id')) {
-                case 1:
+
+            switch (Auth::user()->name) {
+                case 'SteakHome':
                     return new SteakHome();
                     break;
-                case 2:
+                case 'Oishii':
                     return new Oishii();
                     break;
-                case 3:
+                case 'Tasty':
                     return new Tasty();
                     break;
                 default:

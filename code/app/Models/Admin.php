@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,9 +15,7 @@ class Admin extends Authenticatable implements JWTSubject
     // Define the relationship with the AdminAccessToken model
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'email', 'name', 'nickname', 'password', 'phone','status'
     ];
 
     /**
@@ -38,7 +37,7 @@ class Admin extends Authenticatable implements JWTSubject
 
         'password' => 'hashed',
     ];
-/**
+    /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
      * @return mixed
@@ -57,5 +56,4 @@ class Admin extends Authenticatable implements JWTSubject
     {
         return [];
     }
-
 }

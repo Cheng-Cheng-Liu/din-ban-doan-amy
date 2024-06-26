@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Restaurant;
 use App\Services\Restaurants\Librarys\RestaurantLibrary;
 use App\Services\Restaurants\Librarys\CommonLibrary;
@@ -130,27 +129,7 @@ class RestaurantController extends Controller
         // 更新資料庫
         Restaurant::create($requests);
         // 更新redis
-        Redis::connection('db2')->del('all_status_one_restaurants');
-        $restaurants = RestaurantLibrary::getAllStatusOneRestaurants();
-        foreach ($restaurants as $restaurant) {
-            // score是priority+id，例如priority=1，id=1，score=100001
-            $rId = str_pad((string)$restaurant['id'], 5, '0', STR_PAD_LEFT);
-            $score = $restaurant['priority'] . $rId;
-            $data = [
-                'id' => $restaurant['id'],
-                'name' => $restaurant['name'],
-                'tag' => $restaurant['tag'],
-                'phone' => $restaurant['phone'],
-                'opening_time' => $restaurant['opening_time'],
-                'closing_time' => $restaurant['closing_time'],
-                'rest_day' => $restaurant['rest_day'],
-                'avg_score' => $restaurant['avg_score'],
-                'total_comments_count' => $restaurant['total_comments_count'],
-            ];
-            $data = json_encode($data);
-            // data以json儲存
-            Redis::connection('db2')->zadd('all_status_one_restaurants', $score, $data);
-        }
+        Restaurantlibrary::updateAllStatusOneRestaurantsToRedis();
         return response()->json(['error' => __('error.success')]);
     }
 
@@ -160,27 +139,17 @@ class RestaurantController extends Controller
         // 更新資料庫
         Restaurant::find($id)->update($requests);
         // 更新redis
-        Redis::connection('db2')->del('all_status_one_restaurants');
-        $restaurants = RestaurantLibrary::getAllStatusOneRestaurants();
-        foreach ($restaurants as $restaurant) {
-            // score是priority+id，例如priority=1，id=1，score=100001
-            $rId = str_pad((string)$restaurant['id'], 5, '0', STR_PAD_LEFT);
-            $score = $restaurant['priority'] . $rId;
-            $data = [
-                'id' => $restaurant['id'],
-                'name' => $restaurant['name'],
-                'tag' => $restaurant['tag'],
-                'phone' => $restaurant['phone'],
-                'opening_time' => $restaurant['opening_time'],
-                'closing_time' => $restaurant['closing_time'],
-                'rest_day' => $restaurant['rest_day'],
-                'avg_score' => $restaurant['avg_score'],
-                'total_comments_count' => $restaurant['total_comments_count'],
-            ];
-            $data = json_encode($data);
-            // data以json儲存
-            Redis::connection('db2')->zadd('all_status_one_restaurants', $score, $data);
-        }
+        Restaurantlibrary::updateAllStatusOneRestaurantsToRedis();
         return response()->json(['error' => __('error.success')]);
+    }
+
+
+    public function deleteRestaurant($id){
+        // 更新資料庫
+        Restaurant::find($id)->delete();
+        // 更新redis
+        Restaurantlibrary::updateAllStatusOneRestaurantsToRedis();
+        return response()->json(['error' => __('error.success')]);
+
     }
 }

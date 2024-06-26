@@ -94,9 +94,10 @@ class LoginController extends Controller
         }
 
         $credentials = $request->only('email', 'password');
-        if ($token = auth()->guard('web_admin')->attempt($credentials)) {
+        if ($token = auth()->guard('back')->attempt($credentials)) {
+
             // 確認會員狀態是否啟用
-            $status = auth()->guard('web_admin')->user()->status;
+            $status = auth()->guard('back')->user()->status;
             if ($status != 1) {
                 return  response()->json(['error' => 'memberStatusProblem']);
             }
@@ -104,7 +105,7 @@ class LoginController extends Controller
             $string = $token;
             $parts = explode('.', $string);
             $lastPart = end($parts);
-            $id = Auth::user()->id;
+            $id = Auth::guard('back')->user()->id;
 
             try {
                 // 生成token並記錄在personal_access_tokens
@@ -137,7 +138,7 @@ class LoginController extends Controller
         // 刪除該users. id的所有token、redis中所有”取得會員的啟用中全部餐廳”的相關資料
         Redis::del('myrestaurant' . $id);
         PersonalAccessToken::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\User')->delete();
-        // jwt套件登出方法，寫入memcached黑名單
+        // jwt套件登出方法，寫入cache黑名單
         auth()->logout();
         return response()->json(['message' => 'Logged out successfully']);
     }
@@ -145,11 +146,11 @@ class LoginController extends Controller
     // 後台會員登出
     public function backLogout()
     {
-        $user = Auth::user();
+        $user = Auth::guard('back')->user();
         $id = $user->id;
         PersonalAccessToken::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\Admin')->delete();
-        // jwt套件登出方法，寫入memcached黑名單
-        auth()->logout();
+        // jwt套件登出方法，寫入cache黑名單
+        auth()->guard('back')->logout();
         return response()->json(['message' => 'Logged out successfully']);
     }
 }
