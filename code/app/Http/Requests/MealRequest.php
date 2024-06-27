@@ -1,12 +1,12 @@
 <?php
+
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-
-class PaymentRequest extends FormRequest
+class MealRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,7 +26,11 @@ class PaymentRequest extends FormRequest
     public function rules()
     {
         $rules = [
-            'amount' => 'required|integer',
+            'restaurant_id' => 'required|int|between:-9223372036854775808,9223372036854775807',
+            'name' => 'required|string|max:255',
+            'price' => 'required|int',
+            'another_id' => 'required|string|max:255',
+            'status' => 'required|int'
         ];
 
         return $rules;
@@ -36,6 +40,7 @@ class PaymentRequest extends FormRequest
     {
         throw new HttpResponseException(response()->json([
             'error' => __('error.invalidParameters')
+
         ]));
     }
 }

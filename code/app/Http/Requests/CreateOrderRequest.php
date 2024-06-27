@@ -51,7 +51,7 @@ class CreateOrderRequest extends FormRequest
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            response()->json(['error' => 1001])
+            'error' => __('error.invalidParameters')
         ]));
     }
 }

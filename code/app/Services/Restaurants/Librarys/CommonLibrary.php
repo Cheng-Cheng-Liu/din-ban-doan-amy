@@ -5,9 +5,20 @@ namespace App\Services\Restaurants\Librarys;
 
 class CommonLibrary
 {
-    // start從零開始
-    // Input limit offset total
-    // output start stop
+    /**
+ * Calculate the start and end positions for pagination.
+ *
+ * Input parameters:
+ * @param array $data An array containing the following keys:
+ *   - limit (int): The number of records per page
+ *   - offset (int): The current page number, starting from 1
+ *   - total (int): The total number of records
+ *
+ * Return value:
+ * @return array An array containing the following keys:
+ *   - start (int): The start position of the records, starting from 0
+ *   - stop (int): The end position of the records
+ */
     public static function page($data)
     {
         $limit = $data['limit'];

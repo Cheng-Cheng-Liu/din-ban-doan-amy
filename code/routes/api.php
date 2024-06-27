@@ -42,7 +42,7 @@ Route::post('/login_back', [LoginController::class, 'adminLogin']);
 // 金流
 Route::post('/wallet/recharge/result', [PaymentController::class, 'rechargeResult']);
 Route::get('/restaurants', [RestaurantController::class, 'getRestaurants']);
-
+Route::get('/restaurants/{id}/menu',  [MealController::class, 'getMeals']);
 
 Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::post('/logout', [LoginController::class, 'memberLogout']);
@@ -75,6 +75,10 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
     Route::put('/restaurants/{id}', [RestaurantController::class, 'putRestaurant']);
     Route::delete('/restaurants/{id}', [RestaurantController::class, 'deleteRestaurant']);
     Route::get('/saveMeal', [MealController::class, 'saveMeal']);
+    Route::get('/restaurants/{id}/menu', [MealController::class, 'getBackMeals']);
+    Route::post('/restaurants/menu', [MealController::class, 'addMeal']);
+    Route::put('/restaurants/menu/{id}', [MealController::class, 'putMeal']);
+    Route::delete('/restaurants/menu/{id}', [MealController::class, 'deleteMeal']);
     Route::post('/test2', function (Request $request) {
         $token = $request->bearerToken();
         $payload = JWTAuth::parseToken()->getPayload($token);
@@ -83,7 +87,7 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 });
 
 
-Route::get('/test', function () {
+Route::post('/test/{id}',  [MealController::class, 'putMeal']);
+Route::get('/test2',  function(){
     RestaurantLibrary::updateAllStatusOneMealsToRedis();
-
 });

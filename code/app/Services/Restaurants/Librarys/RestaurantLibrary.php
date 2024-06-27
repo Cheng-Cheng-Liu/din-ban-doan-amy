@@ -43,6 +43,12 @@ class RestaurantLibrary
         return $result;
     }
 
+    public static function getAllBackMeals($id)
+    {
+        $result = Meal::where('restaurant_id', '=', $id)->orderBy('id')->get()->toArray();
+        return $result;
+    }
+
     public static function updateAllStatusOneRestaurantsToRedis()
     {
         // 先刪除舊資料

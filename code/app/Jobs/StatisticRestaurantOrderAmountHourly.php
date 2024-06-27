@@ -49,8 +49,8 @@ class StatisticRestaurantOrderAmountHourly implements ShouldQueue
         ) A ON restaurants.id = A.restaurant_id
         where restaurants.status=1
     ";
-        $start = $formattedDateDash . " " . $hour . ":00:00";
-        $stop = $formattedDateDash . " " . $hour . ":59:59";
+        $start = $formattedDateDash . ' ' . $hour . ':00:00';
+        $stop = $formattedDateDash . ' ' . $hour . ':59:59';
         $results = DB::select($sql, [$start, $stop]);
         $order_amount_sum_hourly = json_decode(json_encode($results), true);
 // 有序排列，分數->數量，值->時間

@@ -26,14 +26,14 @@ class RestaurantRequest extends FormRequest
     public function rules()
     {
         $rules = [
-            'name' => 'required|string|max:256',
-            'tag' => 'nullable|string|max:256',
-            'phone' => 'nullable|string|max:60',
-            'opening_time' => 'nullable|string|max:256',
-            'closing_time' => 'nullable|string|max:256',
-            'rest_day' => 'nullable|string|max:7',
-            'status' => 'required|int|max:100',
-            'priority' => 'nullable|int|max:1000',
+            'name' => 'required|string|max:255',
+            'tag' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:15',
+            'opening_time' => 'nullable|string|max:60',
+            'closing_time' => 'nullable|string|max:60',
+            'rest_day' => 'nullable|string|max:255',
+            'status' => 'required|int|max:4',
+            'priority' => 'nullable|int|max:11',
         ];
 
         return $rules;
@@ -42,7 +42,7 @@ class RestaurantRequest extends FormRequest
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            response()->json(['error' => 1001])
+            'error' => __('error.invalidParameters')
         ]));
     }
 }

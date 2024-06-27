@@ -37,11 +37,11 @@ class StatisticPersonalAccessTokenLogCountHourly implements ShouldQueue
         $hour_now=$date->format('H');
         $hour=$hour_now-1;
 
-        $start=$formattedDateDash." ".$hour.":00:00";
-        $stop=$formattedDateDash." ".$hour.":59:59";
+        $start=$formattedDateDash.' '.$hour.':00:00';
+        $stop=$formattedDateDash.' '.$hour.':59:59';
 
 
         $personal_access_token_log_count_hourly = PersonalAccessTokenLog::whereBetween('login_time', [$start, $stop])->count();
-        Redis::zadd("StatisticPersonalAccessTokenLogCountHourly".$formattedDate, $personal_access_token_log_count_hourly,$hour);
+        Redis::zadd('StatisticPersonalAccessTokenLogCountHourly'.$formattedDate, $personal_access_token_log_count_hourly,$hour);
     }
 }
