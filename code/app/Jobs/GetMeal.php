@@ -9,7 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Restaurant;
 use App\Contracts\RestaurantInterface;
-USE App\Http\Controllers\MealController;
+use App\Http\Controllers\MealController;
 use Illuminate\Support\Facades\App;
 use App\Services\Restaurants\SteakHome;
 use App\Services\Restaurants\Oishii;
@@ -25,7 +25,6 @@ class GetMeal implements ShouldQueue
     public $myRestaurant;
     public function __construct()
     {
-
     }
 
     /**
@@ -33,25 +32,25 @@ class GetMeal implements ShouldQueue
      */
     public function handle(): void
     {
-        $restaurant=Restaurant::where('service','!=','')->get(['service'])->toArray();
-        foreach($restaurant as $oneRestaurant){
+        $restaurant = Restaurant::where('service', '!=', '')->get(['service'])->toArray();
+        foreach ($restaurant as $oneRestaurant) {
             switch ($oneRestaurant['service']) {
-                case "SteakHome":
-                    $restaurant= new SteakHome();
+                case 'SteakHome':
+                    $restaurant = new SteakHome();
                     $restaurant->getMeals();
                     break;
-                case "Oishii":
-                    $restaurant= new Oishii();
+                case 'Oishii':
+                    $restaurant = new Oishii();
                     $restaurant->getMeals();
                     break;
-                case "Tasty":
-                    $restaurant= new Tasty();
+                case 'Tasty':
+                    $restaurant = new Tasty();
                     $restaurant->getMeals();
                     break;
                 default:
                     echo $oneRestaurant;
                     break;
+            }
+        }
     }
-    }
-}
 }

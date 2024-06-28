@@ -15,7 +15,11 @@ class Oishii implements RestaurantInterface
 {
     public function getMeals()
     {
-        $response = Http::get(config('services.restaurant.oishii').'/api/menu/all');
+        $response = Http::get(config('services.restaurant.oishii') . '/api/menu/all');
+        if ($response->failed()) {
+            $status = $response->status();
+            Log::channel('getMeal')->info('Oishii_error' . $status);
+        }
         $getMeal = $response->object();
         $restaurantId = Restaurant::where('service', '=', 'Oishii')->get(['id'])->first()->id;
         $existMealId = Meal::where('restaurant_id', $restaurantId)
@@ -66,8 +70,8 @@ class Oishii implements RestaurantInterface
         $serverOutput = Http::post(config('services.restaurant.oishii') . '/api/notify/order', $data);
 
         if ($serverOutput->failed()) {
-            $json = $serverOutput->throw()->json();
-            Log::channel('getMeal')->info('steakHome_error' . $json);
+            $status = $serverOutput->status();
+            Log::channel('sendOrder')->info('Oishii_error' . $status);
         }
 
         if ($serverOutput['error_code'] == 0) {

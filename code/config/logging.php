@@ -134,6 +134,10 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/restaurant/getMeal.log'),
         ],
+        'sendOrder' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/restaurant/sendOrder.log'),
+        ],
     ],
 
 ];

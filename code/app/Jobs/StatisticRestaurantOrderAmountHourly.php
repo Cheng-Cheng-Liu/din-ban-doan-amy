@@ -32,11 +32,10 @@ class StatisticRestaurantOrderAmountHourly implements ShouldQueue
     {
         //key=餐廳ID+日期(年月日)
         $date = Carbon::now();
-
+        $date->subHour();
         $formattedDate = $date->format('Ymd');
-        $formattedDateDash = $date->format('Y-m-d');
-        $hour_now = intval($date->format('H'));
-        $hour = $hour_now - 1;
+        $formattedDateDash = $date->format('Y-m-d H');
+        $hour = $date->format('H');
         $sql = "
         SELECT restaurants.id as 'restaurant_id', IFNULL(total_amount, 0) as 'total_amount'
         FROM restaurants
@@ -49,14 +48,13 @@ class StatisticRestaurantOrderAmountHourly implements ShouldQueue
         ) A ON restaurants.id = A.restaurant_id
         where restaurants.status=1
     ";
-        $start = $formattedDateDash . ' ' . $hour . ':00:00';
-        $stop = $formattedDateDash . ' ' . $hour . ':59:59';
+        $start = $formattedDateDash . ':00:00';
+        $stop = $formattedDateDash . ':59:59';
         $results = DB::select($sql, [$start, $stop]);
-        $order_amount_sum_hourly = json_decode(json_encode($results), true);
-// 有序排列，分數->數量，值->時間
-        foreach ($order_amount_sum_hourly as $oneRestaurant) {
-            $key = $oneRestaurant['restaurant_id'] . $formattedDate;
-            Redis::zadd($key, $oneRestaurant['total_amount'],$hour);
+        // 有序排列，分數->數量，值->時間
+        foreach ($results as $oneRestaurant) {
+            $key = $oneRestaurant->restaurant_id . $formattedDate;
+            Redis::zadd($key, $oneRestaurant->total_amount, $hour);
         }
     }
 }

@@ -130,6 +130,7 @@ class RestaurantController extends Controller
         Restaurant::create($requests);
         // 更新redis
         Restaurantlibrary::updateAllStatusOneRestaurantsToRedis();
+
         return response()->json(['error' => __('error.success')]);
     }
 
@@ -140,6 +141,7 @@ class RestaurantController extends Controller
         Restaurant::find($id)->update($requests);
         // 更新redis
         Restaurantlibrary::updateAllStatusOneRestaurantsToRedis();
+
         return response()->json(['error' => __('error.success')]);
     }
 
@@ -149,6 +151,7 @@ class RestaurantController extends Controller
         Restaurant::find($id)->delete();
         // 更新redis
         Restaurantlibrary::updateAllStatusOneRestaurantsToRedis();
+
         return response()->json(['error' => __('error.success')]);
 
     }

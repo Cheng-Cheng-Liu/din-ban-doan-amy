@@ -31,17 +31,16 @@ class StatisticPersonalAccessTokenLogCountHourly implements ShouldQueue
     public function handle(): void
     {
         $date = Carbon::now();
-
+        $date->subHour();
         $formattedDate = $date->format('Ymd');
-        $formattedDateDash = $date->format('Y-m-d');
-        $hour_now=$date->format('H');
-        $hour=$hour_now-1;
+        $formattedDateDash = $date->format('Y-m-d H');
+        $hour = $date->format('H');
+        $start = $formattedDateDash . ':00:00';
+        $stop = $formattedDateDash . ':59:59';
 
-        $start=$formattedDateDash.' '.$hour.':00:00';
-        $stop=$formattedDateDash.' '.$hour.':59:59';
 
 
         $personal_access_token_log_count_hourly = PersonalAccessTokenLog::whereBetween('login_time', [$start, $stop])->count();
-        Redis::zadd('StatisticPersonalAccessTokenLogCountHourly'.$formattedDate, $personal_access_token_log_count_hourly,$hour);
+        Redis::zadd('StatisticPersonalAccessTokenLogCountHourly' . $formattedDate, $personal_access_token_log_count_hourly, $hour);
     }
 }

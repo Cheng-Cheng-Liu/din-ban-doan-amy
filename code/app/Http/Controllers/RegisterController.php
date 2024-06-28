@@ -35,6 +35,7 @@ class RegisterController extends Controller
         ]);
 
         if ($validator->fails()) {
+
             return response()->json(['error' => __('error.invalidParameters')]);
         }
 
@@ -44,6 +45,7 @@ class RegisterController extends Controller
             // 檢查email是不是已註冊完成
             $hasVerifiedEmail = $user->hasVerifiedEmail();
             if ($hasVerifiedEmail) {
+
                 return  response()->json(['error' => __('error.emailAlreadyVerified')]);
             }
             // 更新資料庫name、password欄位
@@ -80,7 +82,6 @@ class RegisterController extends Controller
             'wallet_type' => 1,
             'remark' => ''
         ]);
-
 
         // 返回最後成功訊息
         return  response()->json(['error' => __('error.pleaseVerifiedEmail')]);

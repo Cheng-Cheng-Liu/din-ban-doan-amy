@@ -96,6 +96,7 @@ class PaymentController extends Controller
             ]);
 
             if (!$creditPayRecord) {
+
                 return response()->json(['error' => 'databaseExecError']);
             }
 
@@ -103,10 +104,8 @@ class PaymentController extends Controller
             Log::channel('credit')->info('server_output' . $server_output);
         }
 
-
         return response()->json(['error' => $response]);
     }
-
 
     function rechargeResult(Request $request)
     {
@@ -130,6 +129,7 @@ class PaymentController extends Controller
                 $walletLogRepeat = WalletLog::where('user_id', '=', $userId)->where('credit_pay_record_id', '=', $creditPayRecordId)->first();
                 if ($walletLogRepeat) {
                     Log::channel('credit')->info('repeat credit_pay_record_id' . $walletLogRepeat->credit_pay_record_id);
+
                     return response()->json(['received' => 1]);
                 }
 

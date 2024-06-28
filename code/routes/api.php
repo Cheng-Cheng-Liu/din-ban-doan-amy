@@ -88,6 +88,15 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
 
 
 Route::post('/test/{id}',  [MealController::class, 'putMeal']);
-Route::get('/test2',  function(){
-    RestaurantLibrary::updateAllStatusOneMealsToRedis();
+Route::get('/test2',  function () {
+    $date = Carbon::now();
+    $date->subHour();
+    $formattedDate = $date->format('Ymd');
+    $formattedDateDash = $date->format('Y-m-d H');
+
+    $start = $formattedDateDash . ':00:00';
+    $stop = $formattedDateDash . ':59:59';
+echo $start;
+echo $formattedDateDash;
+
 });

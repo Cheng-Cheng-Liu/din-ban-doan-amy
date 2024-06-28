@@ -15,7 +15,9 @@ class MealController extends Controller
     function saveMeal(RestaurantInterface $restaurant)
     {
         $restaurant->getMeals();
+
         RestaurantLibrary::updateAllStatusOneMealsToRedis();
+
         return response()->json(['error' => __('error.success')]);
     }
 
@@ -31,11 +33,13 @@ class MealController extends Controller
         $stop = $page['stop'];
         // 依分數由小到大排序取出redis裡的資料
         $results = Redis::connection('db2')->zrange('restaurant_id:'.$id, $start, $stop);
+
         $list = [];
         foreach ($results as $result) {
             $docodeResult = json_decode($result);
             $list[] = $docodeResult;
         }
+
         $data = [
             'total' => $total,
             'list' => $list,
@@ -86,6 +90,7 @@ class MealController extends Controller
         Meal::create($requests);
         // 更新redis
         RestaurantLibrary::updateAllStatusOneMealsToRedis();
+
         return response()->json(['error' => __('error.success')]);
     }
 
@@ -97,6 +102,7 @@ class MealController extends Controller
 
         // 更新redis
         Restaurantlibrary::updateAllStatusOneMealsToRedis();
+
         return response()->json(['error' => __('error.success')]);
     }
 
@@ -106,6 +112,7 @@ class MealController extends Controller
         Meal::find($id)->delete();
         // 更新redis
         Restaurantlibrary::updateAllStatusOneMealsToRedis();
+
         return response()->json(['error' => __('error.success')]);
 
     }

@@ -13,7 +13,12 @@ class Tasty implements RestaurantInterface
 {
     public function getMeals()
     {
-        $response = Http::get(env('services.restaurant.tasty').'/api/menu');
+        $response = Http::get(env('services.restaurant.tasty') . '/api/menu');
+        if ($response->failed()) {
+            $status = $response->status();
+            Log::channel('getMeal')->info('Tasty_error' . $status);
+        }
+
         $getMeal = $response->object();
         $restaurantId = Restaurant::where('service', '=', 'Tasty')->get(['id'])->first()->id;
         $existMealId = Meal::where('restaurant_id', $restaurantId)
@@ -30,7 +35,7 @@ class Tasty implements RestaurantInterface
                     $meal->price = $oneMeal->price;
                     $meal->status = 1;
                     $meal->save();
-                }else {
+                } else {
                     $meal = Meal::where('restaurant_id', $restaurantId)
                         ->where('another_id', $oneMeal->id)
                         ->update([
@@ -58,7 +63,7 @@ class Tasty implements RestaurantInterface
         $formattedDate = $date->format('Y-m-d\TH:i:sP');
         $data = [
             'order_id' => $uuid,
-            'name' =>$user_name,
+            'name' => $user_name,
             'phone_number' => $phone,
             'pickup_time' => $formattedDate,
             'total_price' => $amount,
@@ -68,8 +73,8 @@ class Tasty implements RestaurantInterface
         $serverOutput = Http::post(config('services.restaurant.tasty') . '/api/order', $data);
 
         if ($serverOutput->failed()) {
-            $json = $serverOutput->throw()->json();
-            Log::channel('getMeal')->info('Tasty_error' . $json);
+            $status = $serverOutput->status();
+            Log::channel('sendOrder')->info('Tasty_error' . $status);
         }
 
         if ($serverOutput == '{"success":true,"error_code":0}') {

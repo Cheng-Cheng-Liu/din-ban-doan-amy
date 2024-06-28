@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
@@ -38,10 +39,10 @@ class CreateOrderRequest extends FormRequest
         // Detail validation rules
         if ($this->detail && is_array($this->detail)) {
             foreach ($this->detail as $index => $detail) {
-                $rules["detail.$index.meal_name"] = 'required|string|max:255';
-                $rules["detail.$index.price"] = 'required|integer|min:1|max:100000';
-                $rules["detail.$index.quantity"] = 'required|integer|max:11';
-                $rules["detail.$index.amount"] = 'required|integer|min:1|max:100000';
+                $rules['detail.$index.meal_name'] = 'required|string|max:255';
+                $rules['detail.$index.price'] = 'required|integer|min:1|max:100000';
+                $rules['detail.$index.quantity'] = 'required|integer|max:11';
+                $rules['detail.$index.amount'] = 'required|integer|min:1|max:100000';
             }
         }
 

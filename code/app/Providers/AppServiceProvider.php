@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
         //
         $this->app->bind(RestaurantInterface::class, function () {
 
-            switch (Auth::user()->name) {
+            switch (Auth::guard('back')->user()->name) {
                 case 'SteakHome':
                     return new SteakHome();
                     break;

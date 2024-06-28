@@ -16,10 +16,9 @@ class SteakHome implements RestaurantInterface
         // 有連線成功的話
         $response = Http::get(config('services.restaurant.steakhome') . '/api/menu/ls');
         if ($response->failed()) {
-            $json = $response->throw()->json();
-            Log::channel('getMeal')->info('steakHome_error' . $json);
+            $status = $response->status();
+            Log::channel('getMeal')->info('steakHome_error' . $status);
         }
-
         $getMeal = $response->object();
 
         $restaurantId = Restaurant::where('service', '=', 'SteakHome')->get(['id'])->first()->id;
@@ -71,8 +70,8 @@ class SteakHome implements RestaurantInterface
         $serverOutput = Http::post(config('services.restaurant.steakhome') . '/api/mk/order', $data);
 
         if ($serverOutput->failed()) {
-            $json = $serverOutput->throw()->json();
-            Log::channel('getMeal')->info('steakHome_error' . $json);
+            $status = $serverOutput->status();
+            Log::channel('sendOrder')->info('steakHome_error' . $status);
         }
 
         if ($serverOutput == '{"ERR":0}') {

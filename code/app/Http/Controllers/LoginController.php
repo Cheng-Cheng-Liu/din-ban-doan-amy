@@ -29,25 +29,31 @@ class LoginController extends Controller
         ]);
 
         if ($validator->fails()) {
+
             return response()->json(['error' => __('error.invalidParameters')]);
         }
 
         // 比對mail、password是否一致?
         $credentials = $request->only('email', 'password');
         if (!$token = auth()->attempt($credentials)) {
+
             return response()->json(['error' => __('error.wrongAccountOrPassword')]);
         }
 
+        /** @var User $user */
+        $user = Auth::user();
         // 檢查email是不是已註冊完成
-        if (!Auth::user()->hasVerifiedEmail()) {
-            Auth::user()->sendEmailVerificationNotification();
-            return  response()->json(['error' => 'pleaseVerifiedEmail']);
+        if (!$user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+
+            return  response()->json(['error' => __('error.pleaseVerifiedEmail')]);
         }
 
         // 確認會員狀態是否啟用
         $status = Auth::user()->status;
         if ($status != 1) {
-            return  response()->json(['error' => 'memberStatusProblem']);
+
+            return  response()->json(['error' => __('error.memberStatusProblem')]);
         }
 
         $string = $token;
@@ -63,6 +69,7 @@ class LoginController extends Controller
                 'token' => $lastPart,
             ]);
         } catch (Exception $e) {
+
             // 回傳錯誤訊息
             return response()->json(['error' => 1002]);
         }
@@ -90,6 +97,7 @@ class LoginController extends Controller
         ]);
 
         if ($validator->fails()) {
+
             return response()->json(['error' => __('error.invalidParameters')]);
         }
 
@@ -99,6 +107,7 @@ class LoginController extends Controller
             // 確認會員狀態是否啟用
             $status = auth()->guard('back')->user()->status;
             if ($status != 1) {
+
                 return  response()->json(['error' => 'memberStatusProblem']);
             }
 
@@ -115,8 +124,8 @@ class LoginController extends Controller
                     'name' => 'back',
                     'token' => $lastPart,
                 ]);
-
             } catch (Exception $e) {
+
                 // 回傳錯誤訊息
                 return response()->json(['error' => 'databaseExecError']);
             }
@@ -126,6 +135,7 @@ class LoginController extends Controller
                 'token' => $token,
             ]);
         } else {
+
             return response()->json(['error' => __('error.wrongAccountOrPassword')]);
         }
     }
@@ -140,6 +150,7 @@ class LoginController extends Controller
         PersonalAccessToken::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\User')->delete();
         // jwt套件登出方法，寫入cache黑名單
         auth()->logout();
+
         return response()->json(['message' => 'Logged out successfully']);
     }
 
@@ -151,6 +162,7 @@ class LoginController extends Controller
         PersonalAccessToken::where('tokenable_id', $id)->where('tokenable_type', 'App\Models\Admin')->delete();
         // jwt套件登出方法，寫入cache黑名單
         auth()->guard('back')->logout();
+
         return response()->json(['message' => 'Logged out successfully']);
     }
 }

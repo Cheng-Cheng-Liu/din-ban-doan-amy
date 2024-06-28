@@ -25,6 +25,7 @@ class ReportController extends Controller
         ]);
 
         if ($validator->fails()) {
+
             return response()->json(['error' => 1001]);
         }
 
@@ -47,6 +48,7 @@ class ReportController extends Controller
         }
 
         if (empty($result)) {
+
             return response()->json(['error' => 5001]);
         }
 

@@ -34,6 +34,7 @@ class OrderController extends Controller
             $count = $count + (int)$oneDetail['quantity'] * (int)$mealPrice;
         }
         if ($count != $amount) { {
+
                 return response()->json(['error' => __('error.totalAmountWrong')]);
             }
         }
@@ -45,13 +46,13 @@ class OrderController extends Controller
             $walletBalance = Wallet::where('user_id', '=', Auth::user()->id)->where('status', 1)->sum('balance');
             if ($walletBalance < $amount) {
                 $lock->release();
+
                 return response()->json(['error' => __('error.walletBalanceNotEnough')]);
             }
 
             // 生成UUID
             $uuid = (string) Str::uuid();
             // 店家回傳成功收到訂單?
-
             $restaurantResponse = $restaurant->sendOrder([
                 'user_name' => $userName,
                 'phone' => $phone,
@@ -67,6 +68,7 @@ class OrderController extends Controller
 
             if ($restaurantResponse != 0) {
                 $lock->release();
+
                 return response()->json(['error' => $restaurantResponse]);
             }
 
@@ -135,6 +137,7 @@ class OrderController extends Controller
             $lock->release();
         }
         // cache lock end
+
         return response()->json(['error' => '0']);
     }
 }
