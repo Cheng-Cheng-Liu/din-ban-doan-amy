@@ -66,7 +66,7 @@ class PaymentController extends Controller
             'payment_type' => $payment_type,
             'return_url' => $return_url,
             'trade_desc' => $trade_desc,
-            'check_mac_value' => $check_mac_value
+            'check_mac_value' => $check_mac_value,
         ];
         $server_output = Http::post(config('services.recharge_url'), $data);
         $response_json = $server_output->throw()->json();

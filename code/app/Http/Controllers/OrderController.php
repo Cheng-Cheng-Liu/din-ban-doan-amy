@@ -35,7 +35,7 @@ class OrderController extends Controller
         }
         if ($count != $amount) { {
 
-                return response()->json(['error' => __('error.totalAmountWrong')]);
+                return ['error' => __('error.totalAmountWrong')];
             }
         }
 
@@ -47,7 +47,7 @@ class OrderController extends Controller
             if ($walletBalance < $amount) {
                 $lock->release();
 
-                return response()->json(['error' => __('error.walletBalanceNotEnough')]);
+                return ['error' => __('error.walletBalanceNotEnough')];
             }
 
             // 生成UUID
@@ -63,13 +63,13 @@ class OrderController extends Controller
                 'pick_up_time' => $pickUpTime,
                 'created_time' => $createdTime,
                 'detail' => $detail,
-                'uuid' => $uuid
+                'uuid' => $uuid,
             ]);
 
             if ($restaurantResponse != 0) {
                 $lock->release();
 
-                return response()->json(['error' => $restaurantResponse]);
+                return ['error' => $restaurantResponse];
             }
 
             // 成功修改資料表orders、order_details、wallet_logs、wallets
@@ -118,6 +118,7 @@ class OrderController extends Controller
                     $walletLogAmount = $totalAmount;
                 }
                 $myWallet->save();
+
                 $walletLog = new WalletLog;
                 $walletLog->user_id = Auth::user()->id;
                 $walletLog->wallet_id = $wallet['id'];
@@ -138,6 +139,6 @@ class OrderController extends Controller
         }
         // cache lock end
 
-        return response()->json(['error' => '0']);
+        return ['error' => __('error.success')];
     }
 }

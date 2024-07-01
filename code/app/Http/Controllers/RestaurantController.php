@@ -12,11 +12,17 @@ use App\Http\Requests\RestaurantRequest;
 
 class RestaurantController extends Controller
 {
+    private static $redis;
+
+    function __construct()
+    {
+        self::$redis = Redis::connection('restaurant');
+    }
 
     public function getRestaurants(Request $request)
     {
         // 總筆數
-        $total = Redis::connection('db2')->zcard('all_status_one_restaurants');
+        $total = self::$redis->zcard('all_status_one_restaurants');
         // 筆數
         $limit = $request->input('limit') ? $request->input('limit') : $total;
         // 第幾頁
@@ -25,7 +31,7 @@ class RestaurantController extends Controller
         $start = $page['start'];
         $stop = $page['stop'];
         // 依分數由小到大排序取出redis裡的資料
-        $results = Redis::connection('db2')->zrange('all_status_one_restaurants', $start, $stop);
+        $results = self::$redis->zrange('all_status_one_restaurants', $start, $stop);
         $list = [];
         foreach ($results as $result) {
             $docodeResult = json_decode($result);
@@ -67,7 +73,7 @@ class RestaurantController extends Controller
                     'avg_score' => $restaurant['avg_score'],
                     'total_comments_count' => $restaurant['total_comments_count'],
                     'status' => $restaurant['status'],
-                    'priority' => $restaurant['priority']
+                    'priority' => $restaurant['priority'],
                 ];
             }
         }
@@ -82,7 +88,7 @@ class RestaurantController extends Controller
 
     public function getMemberRestaurants(Request $request)
     {
-        $restaurants = Restaurantlibrary::getAllStatusOneMemberRestaurants(Auth::user()->id);
+        $restaurants = Restaurantlibrary::getAllEnableMemberRestaurants(Auth::user()->id);
         $total = count($restaurants);
         // 筆數
         $limit = $request->input('limit') ? $request->input('limit') : $total;
@@ -107,7 +113,7 @@ class RestaurantController extends Controller
                     'rest_day' => $restaurant->rest_day,
                     'avg_score' => $restaurant->avg_score,
                     'total_comments_count' => $restaurant->total_comments_count,
-                    'favorite' => $restaurant->favorite
+                    'favorite' => $restaurant->favorite,
                 ];
             }
         }
@@ -129,30 +135,52 @@ class RestaurantController extends Controller
         // 更新資料庫
         Restaurant::create($requests);
         // 更新redis
-        Restaurantlibrary::updateAllStatusOneRestaurantsToRedis();
+        Restaurantlibrary::updateAllEnableRestaurantsToRedis();
 
         return response()->json(['error' => __('error.success')]);
     }
 
-    public function putRestaurant(RestaurantRequest $request, $id)
+    public function putRestaurant(RestaurantRequest $request)
     {
-        $requests = $request->all();
+
+        $name = $request->input('name');
+        $tag = $request->input('tag');
+        $phone = $request->input('phone');
+        $openingTime = $request->input('opening_time');
+        $closingTime = $request->input('closing_time');
+        $restDay = $request->input('rest_day');
+        $status = $request->input('status');
+        $priority = $request->input('priority');
+        $restaurantId = $request->input('restaurant_id');
+
         // 更新資料庫
-        Restaurant::find($id)->update($requests);
+        Restaurant::find($restaurantId)->update([
+            'name' => $name,
+            'tag' => $tag,
+            'phone' => $phone,
+            'opening_time' => $openingTime,
+            'closing_time' => $closingTime,
+            'rest_day' => $restDay,
+            'status' => $status,
+            'priority' => $priority,
+        ]);
+
         // 更新redis
-        Restaurantlibrary::updateAllStatusOneRestaurantsToRedis();
+        Restaurantlibrary::updateAllEnableRestaurantsToRedis();
 
         return response()->json(['error' => __('error.success')]);
     }
 
 
-    public function deleteRestaurant($id){
+    public function deleteRestaurant(Request $request)
+    {
+        // 餐廳id
+        $restaurantId = $request->input('opening_time');
         // 更新資料庫
-        Restaurant::find($id)->delete();
+        Restaurant::find($restaurantId)->delete();
         // 更新redis
-        Restaurantlibrary::updateAllStatusOneRestaurantsToRedis();
+        Restaurantlibrary::updateAllEnableRestaurantsToRedis();
 
         return response()->json(['error' => __('error.success')]);
-
     }
 }

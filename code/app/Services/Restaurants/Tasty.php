@@ -8,15 +8,17 @@ use App\Models\Restaurant;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\Restaurants\Librarys\RestaurantLibrary;
 
 class Tasty implements RestaurantInterface
 {
-    public function getMeals()
+    public function getMealsByApi()
     {
-        $response = Http::get(env('services.restaurant.tasty') . '/api/menu');
+        $response = Http::get(config('services.restaurant.tasty') . '/api/menu');
         if ($response->failed()) {
             $status = $response->status();
             Log::channel('getMeal')->info('Tasty_error' . $status);
+            return $status;
         }
 
         $getMeal = $response->object();
@@ -26,6 +28,7 @@ class Tasty implements RestaurantInterface
         $anotherIds = array_column($existMealId, 'another_id');
 
         foreach ($getMeal->data->list as $oneMeal) {
+            Log::channel('getMeal')->info('Tasty_id' . $oneMeal->id);
             if ($oneMeal->enable) {
                 if (!in_array((string)$oneMeal->id, $anotherIds)) {
                     $meal = new Meal();
@@ -45,6 +48,11 @@ class Tasty implements RestaurantInterface
                 }
             }
         }
+
+        RestaurantLibrary::updateEnableMealsToRedis($restaurantId);
+
+        return __('error.success');
+
     }
 
     public function sendOrder($data)

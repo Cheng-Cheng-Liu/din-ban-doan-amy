@@ -146,7 +146,7 @@ return [
             'database' => env('REDIS_CACHE_DB', '1'),
         ],
         // 餐廳與菜單用
-        'db2' => [
+        'restaurant' => [
             // 'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'username' => env('REDIS_USERNAME'),

@@ -42,7 +42,7 @@ Route::post('/login_back', [LoginController::class, 'adminLogin']);
 // 金流
 Route::post('/wallet/recharge/result', [PaymentController::class, 'rechargeResult']);
 Route::get('/restaurants', [RestaurantController::class, 'getRestaurants']);
-Route::get('/restaurants/{id}/menu',  [MealController::class, 'getMeals']);
+Route::get('/restaurants/menu',  [MealController::class, 'getMeals']);
 
 Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::post('/logout', [LoginController::class, 'memberLogout']);
@@ -64,7 +64,7 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
         return $payload->get('jti');
     });
 });
-Route::prefix('back')->middleware(['auth:back'])->group(function () {
+Route::prefix('back')->middleware(['auth:back','ip'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
     Route::prefix('/report')->middleware(['auth:back'])->group(function () {
         Route::post('/members', [ReportController::class, 'restaurantOrderAmount']);
@@ -72,13 +72,13 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
     });
     Route::get('/restaurants', [RestaurantController::class, 'getBackRestaurants']);
     Route::post('/restaurants', [RestaurantController::class, 'addRestaurant']);
-    Route::put('/restaurants/{id}', [RestaurantController::class, 'putRestaurant']);
-    Route::delete('/restaurants/{id}', [RestaurantController::class, 'deleteRestaurant']);
+    Route::put('/restaurants', [RestaurantController::class, 'putRestaurant']);
+    Route::delete('/restaurants', [RestaurantController::class, 'deleteRestaurant']);
     Route::get('/saveMeal', [MealController::class, 'saveMeal']);
-    Route::get('/restaurants/{id}/menu', [MealController::class, 'getBackMeals']);
+    Route::get('/restaurants/menu', [MealController::class, 'getBackMeals']);
     Route::post('/restaurants/menu', [MealController::class, 'addMeal']);
-    Route::put('/restaurants/menu/{id}', [MealController::class, 'putMeal']);
-    Route::delete('/restaurants/menu/{id}', [MealController::class, 'deleteMeal']);
+    Route::put('/restaurants/menu', [MealController::class, 'putMeal']);
+    Route::delete('/restaurants/menu', [MealController::class, 'deleteMeal']);
     Route::post('/test2', function (Request $request) {
         $token = $request->bearerToken();
         $payload = JWTAuth::parseToken()->getPayload($token);
@@ -86,17 +86,10 @@ Route::prefix('back')->middleware(['auth:back'])->group(function () {
     });
 });
 
-
-Route::post('/test/{id}',  [MealController::class, 'putMeal']);
-Route::get('/test2',  function () {
-    $date = Carbon::now();
-    $date->subHour();
-    $formattedDate = $date->format('Ymd');
-    $formattedDateDash = $date->format('Y-m-d H');
-
-    $start = $formattedDateDash . ':00:00';
-    $stop = $formattedDateDash . ':59:59';
-echo $start;
-echo $formattedDateDash;
-
+// 示範用api，設定ip進去memcached
+Route::post('/example/setMyIpFor1000Minutes',  function (Request $req) {
+    $ip = $req->ip();
+    Cache::store('memcached')->put($ip, 'value', '1000');
+    return $ip;
 });
+

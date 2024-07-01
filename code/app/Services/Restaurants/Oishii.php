@@ -9,16 +9,18 @@ use App\Models\Restaurant;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\Restaurants\Librarys\RestaurantLibrary;
 
 
 class Oishii implements RestaurantInterface
 {
-    public function getMeals()
+    public function getMealsByApi()
     {
         $response = Http::get(config('services.restaurant.oishii') . '/api/menu/all');
         if ($response->failed()) {
             $status = $response->status();
             Log::channel('getMeal')->info('Oishii_error' . $status);
+            return $status;
         }
         $getMeal = $response->object();
         $restaurantId = Restaurant::where('service', '=', 'Oishii')->get(['id'])->first()->id;
@@ -43,6 +45,10 @@ class Oishii implements RestaurantInterface
                     ]);
             }
         }
+
+        RestaurantLibrary::updateEnableMealsToRedis($restaurantId);
+
+        return __('error.success');
     }
 
     public function sendOrder($data)

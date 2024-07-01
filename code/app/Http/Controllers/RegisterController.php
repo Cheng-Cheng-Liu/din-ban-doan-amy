@@ -80,7 +80,7 @@ class RegisterController extends Controller
             'balance' => 0,
             'status' => 1,
             'wallet_type' => 1,
-            'remark' => ''
+            'remark' => '',
         ]);
 
         // 返回最後成功訊息

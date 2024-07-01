@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Redis;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\PersonalAccessToken;
 use Exception;
 
@@ -56,17 +57,17 @@ class LoginController extends Controller
             return  response()->json(['error' => __('error.memberStatusProblem')]);
         }
 
-        $string = $token;
-        $parts = explode('.', $string);
-        $lastPart = end($parts);
+        $payload = JWTAuth::setToken($token)->getPayload();
+        $jti = $payload->get('jti');
         $id = Auth::user()->id;
+
         try {
             // 生成token並記錄在personal_access_tokens
             PersonalAccessToken::create([
                 'tokenable_type' => 'App\Models\User',
                 'tokenable_id' => $id,
                 'name' => 'front',
-                'token' => $lastPart,
+                'token' => $jti,
             ]);
         } catch (Exception $e) {
 
@@ -111,9 +112,8 @@ class LoginController extends Controller
                 return  response()->json(['error' => 'memberStatusProblem']);
             }
 
-            $string = $token;
-            $parts = explode('.', $string);
-            $lastPart = end($parts);
+            $payload = JWTAuth::setToken($token)->getPayload();
+            $jti = $payload->get('jti');
             $id = Auth::guard('back')->user()->id;
 
             try {
@@ -122,7 +122,7 @@ class LoginController extends Controller
                     'tokenable_type' => 'App\Models\User',
                     'tokenable_id' => $id,
                     'name' => 'back',
-                    'token' => $lastPart,
+                    'token' => $jti,
                 ]);
             } catch (Exception $e) {
 

@@ -37,15 +37,15 @@ class GetMeal implements ShouldQueue
             switch ($oneRestaurant['service']) {
                 case 'SteakHome':
                     $restaurant = new SteakHome();
-                    $restaurant->getMeals();
+                    $restaurant->getMealsByApi();
                     break;
                 case 'Oishii':
                     $restaurant = new Oishii();
-                    $restaurant->getMeals();
+                    $restaurant->getMealsByApi();
                     break;
                 case 'Tasty':
                     $restaurant = new Tasty();
-                    $restaurant->getMeals();
+                    $restaurant->getMealsByApi();
                     break;
                 default:
                     echo $oneRestaurant;

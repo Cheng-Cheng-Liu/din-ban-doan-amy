@@ -8,16 +8,17 @@ use App\Models\Meal;
 use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\Http;
-
+use App\Services\Restaurants\Librarys\RestaurantLibrary;
 class SteakHome implements RestaurantInterface
 {
-    public function getMeals()
+    public function getMealsByApi()
     {
         // 有連線成功的話
         $response = Http::get(config('services.restaurant.steakhome') . '/api/menu/ls');
         if ($response->failed()) {
             $status = $response->status();
             Log::channel('getMeal')->info('steakHome_error' . $status);
+            return $status;
         }
         $getMeal = $response->object();
 
@@ -44,6 +45,10 @@ class SteakHome implements RestaurantInterface
                     ]);
             }
         }
+
+        RestaurantLibrary::updateEnableMealsToRedis($restaurantId);
+
+        return __('error.success');
     }
 
     public function sendOrder($data)

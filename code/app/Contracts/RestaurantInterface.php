@@ -6,7 +6,7 @@ interface RestaurantInterface {
 
 // return meal's id, name and price by restaurant's api
 
-public function getMeals();
+public function getMealsByApi();
 
 // send order to restaurant's api
 

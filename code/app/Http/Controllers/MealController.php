@@ -12,18 +12,26 @@ use App\Http\Requests\MealRequest;
 
 class MealController extends Controller
 {
-    function saveMeal(RestaurantInterface $restaurant)
+    private static $redis;
+
+    function __construct()
     {
-        $restaurant->getMeals();
-
-        RestaurantLibrary::updateAllStatusOneMealsToRedis();
-
-        return response()->json(['error' => __('error.success')]);
+        self::$redis = Redis::connection('restaurant');
     }
 
-    function getMeals(Request $request,$id){
-        // 總筆數
-        $total = Redis::connection('db2')->zcard('restaurant_id:'.$id);
+    function saveMeal(RestaurantInterface $restaurant)
+    {
+        $result = $restaurant->getMealsByApi();
+
+        return ['error' => $result];
+    }
+
+    function getMeals(Request $request)
+    {
+        // 餐廳id
+        $restaurantId = $request->input('restaurant_id');
+        // 總筆數$i
+        $total = self::$redis->zcard('restaurant_id:' . $restaurantId);
         // 筆數
         $limit = $request->input('limit') ? $request->input('limit') : $total;
         // 第幾頁
@@ -32,7 +40,7 @@ class MealController extends Controller
         $start = $page['start'];
         $stop = $page['stop'];
         // 依分數由小到大排序取出redis裡的資料
-        $results = Redis::connection('db2')->zrange('restaurant_id:'.$id, $start, $stop);
+        $results = self::$redis->zrange('restaurant_id:' . $restaurantId, $start, $stop);
 
         $list = [];
         foreach ($results as $result) {
@@ -46,12 +54,12 @@ class MealController extends Controller
         ];
 
         return response()->json($data);
-
     }
 
-    public function getBackMeals(Request $request,$id)
+    public function getBackMeals(Request $request)
     {
-        $meals = Restaurantlibrary::getAllBackMeals($id);
+        $restaurantId = $request->input('restaurant_id');
+        $meals = Restaurantlibrary::getAllBackMeals($restaurantId);
         $total = count($meals);
         // 筆數
         $limit = $request->input('limit') ? $request->input('limit') : $total;
@@ -67,10 +75,10 @@ class MealController extends Controller
 
             if ($index >= $start && $index <= $stop) {
                 $list[] = [
-                    'id'=>$meal['id'],
-					'name'=> $meal['name'],
-					'price'=>$meal['price'],
-					'another_id'=> $meal['another_id'],
+                    'id' => $meal['id'],
+                    'name' => $meal['name'],
+                    'price' => $meal['price'],
+                    'another_id' => $meal['another_id'],
                 ];
             }
         }
@@ -87,35 +95,35 @@ class MealController extends Controller
     {
         $requests = $request->all();
         // 更新資料庫
-        Meal::create($requests);
+        $meal = Meal::create($requests);
         // 更新redis
-        RestaurantLibrary::updateAllStatusOneMealsToRedis();
+        RestaurantLibrary::updateEnableMealsToRedis($meal->restaurant_id);
 
         return response()->json(['error' => __('error.success')]);
     }
 
-    public function putMeal(MealRequest $request, $id)
+    public function putMeal(MealRequest $request)
     {
+        $restuurantId = $request->input('restaurant_id');
         $requests = $request->all();
         // 更新資料庫
-        Meal::find($id)->update($requests);
+        Meal::find($restuurantId)->update($requests);
 
         // 更新redis
-        Restaurantlibrary::updateAllStatusOneMealsToRedis();
+        Restaurantlibrary::updateEnableMealsToRedis($restuurantId);
 
         return response()->json(['error' => __('error.success')]);
     }
 
 
-    public function deleteMeal($id){
+    public function deleteMeal(MealRequest $request)
+    {
+        $restuurantId = $request->input('restaurant_id');
         // 更新資料庫
-        Meal::find($id)->delete();
+        Meal::find($restuurantId)->delete();
         // 更新redis
-        Restaurantlibrary::updateAllStatusOneMealsToRedis();
+        Restaurantlibrary::updateEnableMealsToRedis($restuurantId);
 
         return response()->json(['error' => __('error.success')]);
-
     }
 }
-
-
