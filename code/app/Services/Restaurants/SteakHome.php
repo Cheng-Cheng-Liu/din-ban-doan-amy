@@ -2,13 +2,12 @@
 
 namespace App\Services\Restaurants;
 
-use App\Contracts\RestaurantInterface;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use App\Models\Restaurant;
 use App\Models\Meal;
-use Illuminate\Support\Facades\Log;
-
-use Illuminate\Support\Facades\Http;
 use App\Services\Restaurants\Librarys\RestaurantLibrary;
+use App\Contracts\RestaurantInterface;
 
 class SteakHome implements RestaurantInterface
 {

@@ -2,13 +2,12 @@
 
 namespace App\Services\Restaurants;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use App\Models\Meal;
 use App\Contracts\RestaurantInterface;
 use App\Models\Restaurant;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use App\Services\Restaurants\Librarys\RestaurantLibrary;
 
 

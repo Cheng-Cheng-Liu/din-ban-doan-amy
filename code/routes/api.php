@@ -76,4 +76,5 @@ Route::post('/example/setMyIpForever',  function (Request $req) {
     Cache::store('memcached')->forever($ip, 'value');
     return $ip;
 });
-
+// 示範用api，設定餐廳進去memcached
+Route::get('/example/add', [RestaurantController::class, 'addRestaurantsToCache']);

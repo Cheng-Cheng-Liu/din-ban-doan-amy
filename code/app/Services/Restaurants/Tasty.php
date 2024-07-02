@@ -2,13 +2,13 @@
 
 namespace App\Services\Restaurants;
 
-use App\Contracts\RestaurantInterface;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use App\Models\Meal;
 use App\Models\Restaurant;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use App\Services\Restaurants\Librarys\RestaurantLibrary;
+use App\Contracts\RestaurantInterface;
 
 class Tasty implements RestaurantInterface
 {
@@ -47,6 +47,7 @@ class Tasty implements RestaurantInterface
                             'price' => $oneMeal->price,
                         ]);
                 }
+
                 $newMealAnotherId[] = $oneMeal->id;
             }
         }

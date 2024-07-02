@@ -2,16 +2,12 @@
 
 namespace App\Console;
 
-use App\Jobs\GetMeal;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\HelloMail;
+use App\Jobs\GetMeal;
 use App\Jobs\StatisticPersonalAccessTokenLogCountHourly;
 use App\Jobs\StatisticRestaurantOrderAmountHourly;
 
-use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\MealController;
 
 class Kernel extends ConsoleKernel
 {

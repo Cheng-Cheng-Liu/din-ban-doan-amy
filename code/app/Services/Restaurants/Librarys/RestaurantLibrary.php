@@ -59,7 +59,13 @@ class RestaurantLibrary
 
     public function updateAllEnableRestaurantsToRedis()
     {
+        // 先刪除舊資料
+        $key = self::$redis->keys('all_status_one_restaurants');
+        if (!empty($key)) {
+            self::$redis->del('all_status_one_restaurants');
+        }
 
+        // 再加入新資料
         $restaurants = RestaurantLibrary::getAllEnableRestaurants();
         foreach ($restaurants as $restaurant) {
             // score是priority+id，例如priority=1，id=1，score=100001
