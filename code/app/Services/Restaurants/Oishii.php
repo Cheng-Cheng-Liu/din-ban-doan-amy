@@ -22,12 +22,15 @@ class Oishii implements RestaurantInterface
             Log::channel('getMeal')->info('Oishii_error' . $status);
             return $status;
         }
+
         $getMeal = $response->object();
         $restaurantId = Restaurant::where('service', '=', 'Oishii')->get(['id'])->first()->id;
         $existMealId = Meal::where('restaurant_id', $restaurantId)
             ->get(['another_id'])->toArray();
         $anotherIds = array_column($existMealId, 'another_id');
+        $newMealAnotherId = [];
         foreach ($getMeal->menu as $oneMeal) {
+            $newMealAnotherId[] = $oneMeal->meal_id;
             if (!in_array((string)$oneMeal->meal_id, $anotherIds)) {
                 $meal = new Meal();
                 $meal->restaurant_id = $restaurantId;
@@ -45,8 +48,18 @@ class Oishii implements RestaurantInterface
                     ]);
             }
         }
+        // 將舊菜單的status改成2
+        foreach ($existMealId as $oneMeal) {
+            if (!in_array((string)$oneMeal["another_id"], $newMealAnotherId)) {
+                $meal = Meal::where('another_id', '=', $oneMeal["another_id"])->where('restaurant_id', $restaurantId)
+                    ->update([
+                        'status' => 2,
+                    ]);
+            }
+        }
 
-        RestaurantLibrary::updateEnableMealsToRedis($restaurantId);
+        $restaurantLibrary = new RestaurantLibrary;
+        $restaurantLibrary->updateEnableMealsToRedis($restaurantId);
 
         return __('error.success');
     }

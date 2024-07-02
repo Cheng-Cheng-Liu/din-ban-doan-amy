@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\Http;
 use App\Services\Restaurants\Librarys\RestaurantLibrary;
+
 class SteakHome implements RestaurantInterface
 {
     public function getMealsByApi()
@@ -20,14 +21,16 @@ class SteakHome implements RestaurantInterface
             Log::channel('getMeal')->info('steakHome_error' . $status);
             return $status;
         }
+
         $getMeal = $response->object();
 
         $restaurantId = Restaurant::where('service', '=', 'SteakHome')->get(['id'])->first()->id;
         $existMealId = Meal::where('restaurant_id', $restaurantId)
             ->get(['another_id'])->toArray();
         $anotherIds = array_column($existMealId, 'another_id');
-
+        $newMealAnotherId = [];
         foreach ($getMeal->LS as $oneMeal) {
+            $newMealAnotherId[] = $oneMeal->ID;
             if (!in_array((string)$oneMeal->ID, $anotherIds)) {
                 $meal = new Meal();
                 $meal->restaurant_id = $restaurantId;
@@ -45,8 +48,18 @@ class SteakHome implements RestaurantInterface
                     ]);
             }
         }
+        // 將舊菜單的status改成2
+        foreach ($existMealId as $oneMeal) {
+            if (!in_array((string)$oneMeal["another_id"], $newMealAnotherId)) {
+                $meal = Meal::where('another_id', '=', $oneMeal["another_id"])->where('restaurant_id', $restaurantId)
+                    ->update([
+                        'status' => 2,
+                    ]);
+            }
+        }
 
-        RestaurantLibrary::updateEnableMealsToRedis($restaurantId);
+        $restaurantLibrary = new RestaurantLibrary;
+        $restaurantLibrary->updateEnableMealsToRedis($restaurantId);
 
         return __('error.success');
     }

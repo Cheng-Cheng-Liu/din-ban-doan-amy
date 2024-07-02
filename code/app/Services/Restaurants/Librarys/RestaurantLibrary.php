@@ -4,7 +4,7 @@ namespace App\Services\Restaurants\Librarys;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
-
+use Illuminate\Support\Facades\Cache;
 use App\Models\Restaurant;
 use App\Models\Meal;
 
@@ -57,16 +57,9 @@ class RestaurantLibrary
         return $result;
     }
 
-    public static function updateAllEnableRestaurantsToRedis()
+    public function updateAllEnableRestaurantsToRedis()
     {
-        // 先刪除舊資料
-        $key = self::$redis->keys('all_status_one_restaurants');
-        if (!empty($key)) {
-            self::$redis->del($key);
-        }
 
-        self::$redis->del('all_status_one_restaurants');
-        // 再加入新資料
         $restaurants = RestaurantLibrary::getAllEnableRestaurants();
         foreach ($restaurants as $restaurant) {
             // score是priority+id，例如priority=1，id=1，score=100001
@@ -88,6 +81,24 @@ class RestaurantLibrary
             self::$redis->zadd('all_status_one_restaurants', $score, $data);
         }
     }
+
+    public static function updateEachEnableRestaurantsToMemcached($restaurant)
+    {
+        $data = [
+            'id' => $restaurant['id'],
+            'name' => $restaurant['name'],
+            'tag' => $restaurant['tag'],
+            'phone' => $restaurant['phone'],
+            'opening_time' => $restaurant['opening_time'],
+            'closing_time' => $restaurant['closing_time'],
+            'rest_day' => $restaurant['rest_day'],
+            'avg_score' => $restaurant['avg_score'],
+            'total_comments_count' => $restaurant['total_comments_count'],
+        ];
+        $jsonData = json_encode($data);
+        // 將全部餐廳個別加入cache
+        Cache::store('memcached')->forever('restaurant:' . $restaurant['id'], $jsonData);
+    }
     /**
      * update a restaurant's enable meals to redis
      *
@@ -96,7 +107,7 @@ class RestaurantLibrary
      *
      *
      */
-    public static function updateEnableMealsToRedis(int $id)
+    public function updateEnableMealsToRedis(int $id)
     {
         // 先刪除舊資料
         $key = self::$redis->keys('restaurant_id:' . $id);

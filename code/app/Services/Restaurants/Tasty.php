@@ -26,8 +26,9 @@ class Tasty implements RestaurantInterface
         $existMealId = Meal::where('restaurant_id', $restaurantId)
             ->get(['another_id'])->toArray();
         $anotherIds = array_column($existMealId, 'another_id');
-
+        $newMealAnotherId = [];
         foreach ($getMeal->data->list as $oneMeal) {
+
             Log::channel('getMeal')->info('Tasty_id' . $oneMeal->id);
             if ($oneMeal->enable) {
                 if (!in_array((string)$oneMeal->id, $anotherIds)) {
@@ -46,13 +47,23 @@ class Tasty implements RestaurantInterface
                             'price' => $oneMeal->price,
                         ]);
                 }
+                $newMealAnotherId[] = $oneMeal->id;
+            }
+        }
+        // 將舊菜單的status改成2
+        foreach ($existMealId as $oneMeal) {
+            if (!in_array((string)$oneMeal["another_id"], $newMealAnotherId)) {
+                $meal = Meal::where('another_id', '=', $oneMeal["another_id"])->where('restaurant_id', $restaurantId)
+                    ->update([
+                        'status' => 2,
+                    ]);
             }
         }
 
-        RestaurantLibrary::updateEnableMealsToRedis($restaurantId);
+        $restaurantLibrary = new RestaurantLibrary;
+        $restaurantLibrary->updateEnableMealsToRedis($restaurantId);
 
         return __('error.success');
-
     }
 
     public function sendOrder($data)

@@ -42,28 +42,17 @@ Route::post('/login_back', [LoginController::class, 'adminLogin']);
 // 金流
 Route::post('/wallet/recharge/result', [PaymentController::class, 'rechargeResult']);
 Route::get('/restaurants', [RestaurantController::class, 'getRestaurants']);
+Route::get('/restaurant', [RestaurantController::class, 'getRestaurant']);
 Route::get('/restaurants/menu',  [MealController::class, 'getMeals']);
 
 Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::post('/logout', [LoginController::class, 'memberLogout']);
-    Route::get('/restaurants', [RestaurantController::class, 'get_member_restaurants']);
     // 金流
     Route::post('/wallets/recharge', [PaymentController::class, 'recharge']);
     Route::post('/orders', [OrderController::class, 'create_order']);
     Route::get('/restaurants', [RestaurantController::class, 'getMemberRestaurants']);
-    Route::post('/test', function () {
-        $user = Auth::user();
-        echo $user->id;
-        auth()->logout();
-        $user2 = Auth::user();
-        echo $user2->id;
-    });
-    Route::post('/test2', function (Request $request) {
-        $token = $request->bearerToken();
-        $payload = JWTAuth::parseToken()->getPayload($token);
-        return $payload->get('jti');
-    });
 });
+
 Route::prefix('back')->middleware(['auth:back','ip'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
     Route::prefix('/report')->middleware(['auth:back'])->group(function () {
@@ -79,17 +68,12 @@ Route::prefix('back')->middleware(['auth:back','ip'])->group(function () {
     Route::post('/restaurants/menu', [MealController::class, 'addMeal']);
     Route::put('/restaurants/menu', [MealController::class, 'putMeal']);
     Route::delete('/restaurants/menu', [MealController::class, 'deleteMeal']);
-    Route::post('/test2', function (Request $request) {
-        $token = $request->bearerToken();
-        $payload = JWTAuth::parseToken()->getPayload($token);
-        return $payload->get('jti');
-    });
 });
 
 // 示範用api，設定ip進去memcached
-Route::post('/example/setMyIpFor1000Minutes',  function (Request $req) {
+Route::post('/example/setMyIpForever',  function (Request $req) {
     $ip = $req->ip();
-    Cache::store('memcached')->put($ip, 'value', '1000');
+    Cache::store('memcached')->forever($ip, 'value');
     return $ip;
 });
 

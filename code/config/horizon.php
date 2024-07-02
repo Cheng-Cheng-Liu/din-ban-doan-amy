@@ -56,7 +56,7 @@ return [
 
     'prefix' => env(
         'HORIZON_PREFIX',
-        Str::slug(env('APP_NAME', 'laravel'), '_').'_horizon:'
+        Str::slug(env('APP_NAME', 'laravel'), '_') . '_horizon:'
     ),
 
     /*
@@ -214,19 +214,6 @@ return [
 
     'defaults' => [
         'supervisor-1' => [
-                    'connection' => 'redis',
-                    'queue' => ['default'],
-                    'balance' => 'auto',
-                    'autoScalingStrategy' => 'time',
-                    'maxProcesses' => 8,
-                    'maxTime' => 0,
-                    'maxJobs' => 0,
-                    'memory' => 128,
-                    'tries' => 1,
-                    'timeout' => 60,
-                    'nice' => 0,
-                ],
-        'email-supervisor' => [
             'connection' => 'redis',
             'queue' => ['default'],
             'balance' => 'auto',
@@ -258,14 +245,6 @@ return [
 
     'environments' => [
         'production' => [
-            'email-supervisor' => [
-                'connection' => 'redis',
-                'queue' => ['emails'],
-                'balance' => 'simple',
-                'processes' => 5,
-                'tries' => 3,
-            ],
-
             'report-supervisor' => [
                 'connection' => 'redis',
                 'queue' => ['reports'],
@@ -276,21 +255,15 @@ return [
         ],
         'local' => [
             'supervisor-1' => [
-                            'maxProcesses' => 2,
-                        ],
-            'email-supervisor' => [
-                'connection' => 'redis',
-                'queue' => ['emails'],
-                'balance' => 'simple',
-                'processes' => 5,
-                'tries' => 3,
+                'maxProcesses' => 2,
+                'processes' => 10,
             ],
 
             'report-supervisor' => [
                 'connection' => 'redis',
                 'queue' => ['reports'],
                 'balance' => 'simple',
-                'processes' => 10,
+                'processes' => 1,
                 'tries' => 3,
             ],
         ],

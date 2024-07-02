@@ -8,12 +8,10 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Restaurant;
-use App\Contracts\RestaurantInterface;
-use App\Http\Controllers\MealController;
-use Illuminate\Support\Facades\App;
 use App\Services\Restaurants\SteakHome;
 use App\Services\Restaurants\Oishii;
 use App\Services\Restaurants\Tasty;
+use Illuminate\Support\Facades\Log;
 
 class GetMeal implements ShouldQueue
 {
@@ -22,7 +20,6 @@ class GetMeal implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public $myRestaurant;
     public function __construct()
     {
     }
@@ -48,7 +45,7 @@ class GetMeal implements ShouldQueue
                     $restaurant->getMealsByApi();
                     break;
                 default:
-                    echo $oneRestaurant;
+                    Log::channel('getMeal')->info('get_meal_job_error' . $oneRestaurant);
                     break;
             }
         }

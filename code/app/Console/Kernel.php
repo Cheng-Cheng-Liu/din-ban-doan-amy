@@ -31,9 +31,9 @@ class Kernel extends ConsoleKernel
         $schedule->job(new StatisticRestaurantOrderAmountHourly, 'reports', 'redis')->everyMinute();
 
         // 每日自動更新餐點
-        // $schedule->job(new GetMeal())->everyMinute();
+        // $schedule->job(new GetMeal())->daily();
         // (測試用)每分鐘自動更新餐點
-        // $schedule->job(new GetMeal())->everyMinute();
+        $schedule->job(new GetMeal())->everyMinute();
 
 
     }
