@@ -88,6 +88,7 @@ class ReportController extends Controller
             $restaurantId = $keys[$i];
             $limitResult[$restaurantId] = $sortResult[$restaurantId];
         }
+
         // 組成list內容
         $list = [];
         foreach ($limitResult as $restaurantId => $statistics) {

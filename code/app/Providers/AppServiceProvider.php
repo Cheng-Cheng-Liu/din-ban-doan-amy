@@ -8,6 +8,7 @@ use App\Contracts\RestaurantInterface;
 use App\Services\Restaurants\SteakHome;
 use App\Services\Restaurants\Oishii;
 use App\Services\Restaurants\Tasty;
+use App\Models\Restaurant;
 
 
 class AppServiceProvider extends ServiceProvider
@@ -18,9 +19,16 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
-        $this->app->bind(RestaurantInterface::class, function () {
 
-            switch (Auth::guard('back')->user()->name) {
+        $this->app->bind(RestaurantInterface::class, function () {
+            if (isset(Auth::guard('back')->user()->name)) {
+                $name = Auth::guard('back')->user()->name;
+            } else {
+                $id = request()->input('restaurant_id');
+                $name = Restaurant::where('id', '=', $id)->first()->service;
+            }
+
+            switch ($name) {
                 case 'SteakHome':
                     return new SteakHome();
                     break;
