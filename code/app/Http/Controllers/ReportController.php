@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Restaurant;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Validator;
+use App\Services\Restaurants\Librarys\CommonLibrary;
+
 
 class ReportController extends Controller
 {
@@ -59,6 +61,7 @@ class ReportController extends Controller
             $newRow = [];
 
             for ($i = 0; $i < 24; $i++) {
+                $i=str_pad($i, 2, "0", STR_PAD_LEFT);
                 if (isset($row[$i])) {
                     $newRow[$i] = $row[$i];
                 } else {
@@ -66,21 +69,24 @@ class ReportController extends Controller
                 }
             }
             $sortResult[$key] = $newRow;
+
         }
+
         // 預設顯示全部資料在第一頁，筆數=總數，頁面=1
         $limit = $total;
-        $offset = 1;
-        // 如果有arg就帶入limit跟offset
-        $limit = $request->input('limit') ?? $limit;
-        $offset = $request->input('offset') ?? $offset;
-        $limit = ($limit > $total) ? $total : $limit;
-        $offset = (($limit * $offset) > $total) ? ceil(($i + 1) / $total) : $offset;
+        // 筆數
+        $limit = $request->input('limit') ? $request->input('limit') : $total;
+        // 第幾頁
+        $offset = $request->input('offset') ? $request->input('offset') : 1;
+        $page = CommonLibrary::page(['total' => $total, 'limit' => $limit, 'offset' => $offset]);
+        $start = $page['start'];
+        $stop = $page['stop'];
         // 取出限制的筆數與頁數
         $keys = array_keys($sortResult);
         $limitResult = [];
-        for ($i = ($limit * ($offset - 1)); $i < (($limit * $offset)); $i++) {
+        for ($i =$start; $i < $stop; $i++) {
             $restaurantId = $keys[$i];
-            $limitResult[] = $sortResult[$restaurantId];
+            $limitResult[$restaurantId] = $sortResult[$restaurantId];
         }
         // 組成list內容
         $list = [];
@@ -102,6 +108,10 @@ class ReportController extends Controller
 
         return $response;
     }
+
+
+
+
 
 
     public function statisticPersonalAccessTokenLogCountHourly(Request $request)

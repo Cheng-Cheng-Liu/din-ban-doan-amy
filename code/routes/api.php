@@ -56,8 +56,7 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
 Route::prefix('back')->middleware(['auth:back','ip'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
     Route::prefix('/report')->middleware(['auth:back'])->group(function () {
-        Route::post('/members', [ReportController::class, 'restaurantOrderAmount']);
-        Route::post('/statisticPersonalAccessTokenLogCountHourly', [ReportController::class, 'statisticPersonalAccessTokenLogCountHourly']);
+        Route::post('/restaurants', [ReportController::class, 'restaurantOrderAmount']);
     });
     Route::get('/restaurants', [RestaurantController::class, 'getBackRestaurants']);
     Route::post('/restaurants', [RestaurantController::class, 'addRestaurant']);

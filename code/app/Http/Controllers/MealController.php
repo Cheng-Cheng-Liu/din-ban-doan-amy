@@ -107,9 +107,10 @@ class MealController extends Controller
     public function putMeal(MealRequest $request)
     {
         $restuurantId = $request->input('restaurant_id');
+        $anotherId=$request->input('another_id');
         $requests = $request->all();
         // 更新資料庫
-        Meal::find($restuurantId)->update($requests);
+        Meal::where("restaurant_id","=",$restuurantId)->where("another_id","=",$anotherId)->update($requests);
 
         // 更新redis
         $restaurantlibrary=new Restaurantlibrary;
@@ -118,11 +119,12 @@ class MealController extends Controller
         return response()->json(['error' => __('error.success')]);
     }
 
-    public function deleteMeal(MealRequest $request)
+    public function deleteMeal(Request $request)
     {
         $restuurantId = $request->input('restaurant_id');
+        $anotherId=$request->input('another_id');
         // 更新資料庫
-        Meal::find($restuurantId)->delete();
+        Meal::where("restaurant_id","=",$restuurantId)->where("another_id","=",$anotherId)->delete();
         // 更新redis
         $restaurantlibrary=new Restaurantlibrary;
         $restaurantlibrary->updateEnableMealsToRedis($restuurantId);
