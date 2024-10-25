@@ -1,4 +1,4 @@
-version: '3.8'
+
 services:
   backend:
     build:
@@ -12,12 +12,38 @@ services:
       - db
 
   db:
-    image: mysql:5.7.22
+    image: mysql:8.0.40
+    platform: linux/amd64
     restart: always
     environment:
-      MYSQL_DATABASE: admin
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: qwe123
     volumes:
       - ./storage/dbdata:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./storage/redisdata:/data
+    restart: always
+
+  memcached:
+    image: memcached:alpine
+    ports:
+      - "11211:11211"
+    environment:
+      - MEMCACHED_PORT=11211
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: 1234
+    depends_on:
+      - db
