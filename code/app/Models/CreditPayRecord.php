@@ -9,6 +9,7 @@ class CreditPayRecord extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'user_id',
         'payment_type',
         'merchant_id',
         'merchant_trade_no',

@@ -51,6 +51,7 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::post('/wallets/recharge', [PaymentController::class, 'recharge']);
     Route::post('/orders', [OrderController::class, 'create_order']);
     Route::get('/restaurants', [RestaurantController::class, 'getMemberRestaurants']);
+    Route::post('/test', function(){ return "test";});
 });
 
 Route::prefix('back')->middleware(['auth:back','ip'])->group(function () {
@@ -67,6 +68,9 @@ Route::prefix('back')->middleware(['auth:back','ip'])->group(function () {
     Route::post('/restaurants/menu', [MealController::class, 'addMeal']);
     Route::put('/restaurants/menu', [MealController::class, 'putMeal']);
     Route::delete('/restaurants/menu', [MealController::class, 'deleteMeal']);
+    Route::get('/test', function(){
+        return "admins ok";
+    });
 });
 
 // 示範用api，設定ip進去memcached

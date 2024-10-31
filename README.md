@@ -190,7 +190,7 @@ GET /api/member/wallet_logs
 
 6-2 會員錢包儲值請求
 
-POST /api/member/wallets/**recharge**
+POST /api/member/wallets/recharge
 
 6-3 會員錢包儲值
 

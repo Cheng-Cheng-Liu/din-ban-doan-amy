@@ -68,17 +68,15 @@ class PaymentController extends Controller
             'trade_desc' => $trade_desc,
             'check_mac_value' => $check_mac_value,
         ];
+        
         $server_output = Http::post(config('services.recharge_url'), $data);
+        
         $response_json = $server_output->throw()->json();
-
-        if (array_key_exists('transaction_url', $response_json)) {
-            $response = 0;
-        } else {
-            $response = 3002;
-        }
+        
 
         // // 把資料寫入credit_pay_records
-        if ($response == 0) {
+        if (array_key_exists('transaction_url', $response_json)) {
+            
             $user = Auth::user();
             $creditPayRecord = CreditPayRecord::create([
                 'user_id' => $user->id,
@@ -104,7 +102,13 @@ class PaymentController extends Controller
             Log::channel('credit')->info('server_output' . $server_output);
         }
 
-        return response()->json(['error' => $response]);
+        // 最後結果回傳
+        if (array_key_exists('transaction_url', $response_json)) {
+            return response()->json($response_json);
+        } else {
+            return response()->json(['error' => 'rechargeFall']);
+        }
+        
     }
 
     function rechargeResult(Request $request)
