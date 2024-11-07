@@ -72,7 +72,6 @@ class PaymentController extends Controller
         $server_output = Http::post(config('services.recharge_url'), $data);
         
         $response_json = $server_output->throw()->json();
-        
 
         // // 把資料寫入credit_pay_records
         if (array_key_exists('transaction_url', $response_json)) {
@@ -113,6 +112,7 @@ class PaymentController extends Controller
 
     function rechargeResult(Request $request)
     {
+        Log::channel('credit')->info("hallo");
         Log::channel('credit')->info($request);
         $getCheckMacValue = $request->input('check_mac_value');
         // 自己計算一次check_mac_value

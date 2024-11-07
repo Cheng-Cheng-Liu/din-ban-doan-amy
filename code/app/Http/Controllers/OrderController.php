@@ -41,7 +41,7 @@ class OrderController extends Controller
         }
 
         // cache lock start
-        $lock = Cache::lock('foo', 100);
+        $lock = Cache::lock('foo'.$userName, 100);
 
         if ($lock->get()) {
             try {

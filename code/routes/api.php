@@ -83,7 +83,11 @@ Route::post('/example/setMyIpForever',  function (Request $req) {
 // 示範用api，設定餐廳進去memcached
 Route::get('/example/add', [RestaurantController::class, 'addRestaurantsToCache']);
 
-// 示範用api，設定餐廳進去memcached
+// just test
 Route::get('/test', function(){
-   return 'docker ok'; 
+    Cache::put('key', 'value', 600); // 有效期 600 秒（10 分鐘）
+
+    // 取出資料
+    $value = Cache::get('key');
+echo $value;
 });
