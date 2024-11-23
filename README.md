@@ -2645,6 +2645,7 @@ Parameters
 | pick_up_time | string | v | 取餐時間 |
 | created_time | string | v | 訂單創立時間 |
 | detail[].meal_name | string | v | 餐點名稱 |
+| detail[].meal_id | string | v | 餐點id |
 | detail[].another_id | string | v | 餐廳提供餐點id |
 | detail[].price | int | v | 單點單價 |
 | detail[].quantity | int | v | 餐點數量 |
@@ -2667,6 +2668,7 @@ Parameters
 			"detail":[
 										{
 													"meal_name":"Steak 1",
+													"meal_id":1,
 													"another_id":1,
 													"price":299,
 													"quantity":1,
@@ -2675,7 +2677,8 @@ Parameters
 										},
 										{
 													"meal_name":"豪華牛排",
-													"another_id":1,
+													"meal_id":2,
+													"another_id":2,
 													"price":999,
 													"quantity":1,
 													"amount":999,

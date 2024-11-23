@@ -51,10 +51,12 @@ Route::prefix('member')->middleware(['auth:member'])->group(function () {
     Route::post('/wallets/recharge', [PaymentController::class, 'recharge']);
     Route::post('/orders', [OrderController::class, 'create_order']);
     Route::get('/restaurants', [RestaurantController::class, 'getMemberRestaurants']);
-    Route::post('/test', function(){ return "test";});
+    Route::post('/test', function () {
+        return "test";
+    });
 });
 
-Route::prefix('back')->middleware(['auth:back','ip'])->group(function () {
+Route::prefix('back')->middleware(['auth:back', 'ip'])->group(function () {
     Route::post('/logout', [LoginController::class, 'backLogout']);
     Route::prefix('/report')->middleware(['auth:back'])->group(function () {
         Route::post('/restaurants', [ReportController::class, 'restaurantOrderAmount']);
@@ -68,7 +70,7 @@ Route::prefix('back')->middleware(['auth:back','ip'])->group(function () {
     Route::post('/restaurants/menu', [MealController::class, 'addMeal']);
     Route::put('/restaurants/menu', [MealController::class, 'putMeal']);
     Route::delete('/restaurants/menu', [MealController::class, 'deleteMeal']);
-    Route::get('/test', function(){
+    Route::get('/test', function () {
         return "admins ok";
     });
 });
@@ -84,10 +86,28 @@ Route::post('/example/setMyIpForever',  function (Request $req) {
 Route::get('/example/add', [RestaurantController::class, 'addRestaurantsToCache']);
 
 // just test
-Route::get('/test', function(){
-    Cache::put('key', 'value', 600); // 有效期 600 秒（10 分鐘）
+Route::post('/test', function () {
 
-    // 取出資料
-    $value = Cache::get('key');
-echo $value;
+    // 初始化 cURL
+    $ch = curl_init();
+
+    // 設置 cURL 選項
+    curl_setopt($ch, CURLOPT_URL, "http://localhost:8082"); // 目標 URL
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 返回結果作為字串，而非直接輸出
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 設定超時時間（可選）
+
+    // 執行請求並獲取回應
+    $response = curl_exec($ch);
+
+    // 檢查是否有錯誤
+    if (curl_errno($ch)) {
+        echo 'cURL Error: ' . curl_error($ch);
+    } else {
+        // 成功的話，輸出回應內容
+        echo "Response:\n";
+        echo $response;
+    }
+
+    // 關閉 cURL
+    curl_close($ch);
 });
