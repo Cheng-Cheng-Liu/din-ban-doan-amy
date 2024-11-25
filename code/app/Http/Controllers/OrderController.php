@@ -14,6 +14,7 @@ use App\Models\OrderDetail;
 use App\Contracts\RestaurantInterface;
 use App\Models\WalletLog;
 use App\Http\Requests\CreateOrderRequest;
+use App\Jobs\ProcessOrderJob;
 
 class OrderController extends Controller
 {
@@ -45,108 +46,13 @@ class OrderController extends Controller
         $lock = Cache::lock('foo' . $userName, 10);
 
         if ($lock->get()) {
-            try {
-                // wallet.balance>amount(總額)
-                $walletBalance = Wallet::where('user_id', '=', Auth::user()->id)->where('status', 1)->sum('balance');
-                if ($walletBalance < $amount) {
-                    return ['error' => __('error.walletBalanceNotEnough')];
-                }
 
-                // 生成UUID
-                $uuid = (string) Str::uuid();
+            $data = $request->all();
+            $data['user_id'] = Auth::user()->id;
+            $data['restaurant'] = $restaurant;
+            ProcessOrderJob::dispatch($data);
 
-                // 店家回傳成功收到訂單?
-                $restaurantResponse = $restaurant->sendOrder([
-                    'user_name' => $userName,
-                    'phone' => $phone,
-                    'restaurant_id' => $restaurantId,
-                    'amount' => $amount,
-                    'status' => $status,
-                    'remark' => $remark,
-                    'pick_up_time' => $pickUpTime,
-                    'created_time' => $createdTime,
-                    'detail' => $detail,
-                    'uuid' => $uuid,
-                ]);
-
-                if ($restaurantResponse == 0) {
-                    return ['error' => $restaurantResponse];
-                }
-
-                // 修改資料表orders、order_details、wallet_logs、wallets start
-                DB::beginTransaction();
-                // orders
-                $order = Order::create([
-                    'user_id' => Auth::user()->id,
-                    'restaurant_id' => $restaurantId,
-                    'name' => $userName,
-                    'another_id' => $uuid,
-                    'choose_payment' => 'credit',
-                    'amount' => $amount,
-                    'status' => 1,
-                    'remark' => $remark,
-                    'pick_up_time' => $pickUpTime,
-                    'created_at' => $createdTime,
-                ]);
-
-                // order_details
-                foreach ($detail as $onemeal) {
-                    var_dump($onemeal);
-
-                    OrderDetail::create([
-                        'order_id' => $order->id,
-                        'meal_id' => $onemeal['meal_id'],
-                        'meal_another_id' => $onemeal['another_id'],
-                        'price' => $onemeal['price'],
-                        'quantity' => $onemeal['quantity'],
-                        'amount' => $onemeal['amount'],
-                        'remark' => $onemeal['meal_remark'],
-                        'created_at' => $createdTime,
-                    ]);
-                }
-
-                // 先拿所有TYPE的錢包們
-                $wallets = Wallet::where('user_id', '=', Auth::user()->id)->where('status', '=', 1)->orderBy('wallet_type', 'desc')->get()->toArray();
-
-                // 先扣非主錢包，從type大的開始減
-                $totalAmount = $amount;
-                foreach ($wallets as $wallet) {
-                    if ($totalAmount > $wallet['balance']) {
-                        Wallet::where('id', $wallet['id'])->update(['balance' => 0]);
-                        $walletLogAmount = $wallet['balance'];
-                    } else {
-                        Wallet::where('id', $wallet['id'])->update([
-                            'balance' => $wallet['balance'] - $totalAmount,
-                        ]);
-                        $walletLogAmount = $totalAmount;
-                    }
-
-                    WalletLog::create([
-                        'user_id' => Auth::user()->id,
-                        'wallet_id' => $wallet['id'],
-                        'order_id' => $order->id,
-                        'amount' => -$walletLogAmount,
-                        'balance' => Wallet::find($wallet['id'])->balance,
-                        'status' => 1,
-                        'remark' => '',
-                        'created_at' => $createdTime,
-                    ]);
-
-
-                    $totalAmount = $totalAmount - $wallet['balance'];
-                    if ($totalAmount <= 0) {
-                        break;
-                    }
-                }
-                // 修改資料表orders、order_details、wallet_logs、wallets end
-                DB::commit();
-
-                return ['error' => __('error.success')];
-            } catch (\Exception $e) {
-                // 修改資料表orders、order_details、wallet_logs、wallets 失敗回滾
-                DB::rollBack();
-                Log::channel('sendOrder')->info($e);
-            }
+            return ['error' => __('error.success')];
         } else {
             // 還鎖著
             return ['error' => __('error.doNotRepeatSentRequest')];
