@@ -19,17 +19,17 @@ class Kernel extends ConsoleKernel
         // 統計每小時會員登入報表
         // $schedule->job(new StatisticPersonalAccessTokenLogCountHourly,'reports','redis')->hourly();
         // (測試用)統計每分鐘會員登入報表
-        $schedule->job(new StatisticPersonalAccessTokenLogCountHourly,'reports','redis')->everyMinute();
+        // $schedule->job(new StatisticPersonalAccessTokenLogCountHourly,'reports','redis')->everyMinute();
 
         // 統計每小時各家餐廳的訂單總額度
         // $schedule->job(new StatisticRestaurantOrderAmountHourly, 'reports', 'redis')->hourly();
         // (測試用)統計每分鐘各家餐廳的訂單總額度
-        $schedule->job(new StatisticRestaurantOrderAmountHourly, 'reports', 'redis')->everyMinute();
+        // $schedule->job(new StatisticRestaurantOrderAmountHourly, 'reports', 'redis')->everyMinute();
 
         // 每日自動更新餐點
         // $schedule->job(new GetMeal())->daily();
         // (測試用)每分鐘自動更新餐點
-        $schedule->job(new GetMeal())->everyMinute();
+        // $schedule->job(new GetMeal())->everyMinute();
 
 
     }

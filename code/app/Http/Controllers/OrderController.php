@@ -50,7 +50,7 @@ class OrderController extends Controller
             $data = $request->all();
             $data['user_id'] = Auth::user()->id;
             $data['restaurant'] = $restaurant;
-            ProcessOrderJob::dispatch($data);
+            ProcessOrderJob::dispatch($data)->onQueue('orders');
 
             return ['error' => __('error.success')];
         } else {
