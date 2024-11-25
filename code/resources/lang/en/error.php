@@ -8,9 +8,10 @@ return [
     'wrongAccountOrPassword' => '2002',
     'pleaseVerifiedEmail' => '2003',
     'memberStatusProblem' => '2004',
-    'Unauthorized. IP not whitelisted'=>'2007',
+    'Unauthorized. IP not whitelisted' => '2007',
     'walletBalanceNotEnough' => '3001',
     'restaurantAcceptOrderNotSuccessfully' => '3002',
     'rechargeFall' => '3003',
-    'totalAmountWrong' => '3004'
+    'totalAmountWrong' => '3004',
+    'doNotRepeatSentRequest' => '3005',
 ];

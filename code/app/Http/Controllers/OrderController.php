@@ -31,15 +31,15 @@ class OrderController extends Controller
 
         // 再計算一次各個商品的數量*(資料庫裡的)單價最後的總額有沒有符合前端送來的amount
         (int)$count = 0;
-        foreach ($detail as $oneDetail) {
-            $mealPrice = Meal::where('another_id', '=', $oneDetail['another_id'])->where('restaurant_id', '=', $restaurantId)->first()->price;
-            $count = $count + (int)$oneDetail['quantity'] * (int)$mealPrice;
-        }
-        if ($count != $amount) { {
+        // foreach ($detail as $oneDetail) {
+        //     $mealPrice = Meal::where('another_id', '=', $oneDetail['another_id'])->where('restaurant_id', '=', $restaurantId)->first()->price;
+        //     $count = $count + (int)$oneDetail['quantity'] * (int)$mealPrice;
+        // }
+        // if ($count != $amount) { {
 
-                return ['error' => __('error.totalAmountWrong')];
-            }
-        }
+        //         return ['error' => __('error.totalAmountWrong')];
+        //     }
+        // }
 
         // cache lock start
         $lock = Cache::lock('foo' . $userName, 10);
@@ -69,7 +69,7 @@ class OrderController extends Controller
                     'uuid' => $uuid,
                 ]);
 
-                if ($restaurantResponse != 0) {
+                if ($restaurantResponse == 0) {
                     return ['error' => $restaurantResponse];
                 }
 
@@ -91,7 +91,8 @@ class OrderController extends Controller
 
                 // order_details
                 foreach ($detail as $onemeal) {
-                    // var_dump($onemeal[ 'meal_name']);
+                    var_dump($onemeal);
+
                     OrderDetail::create([
                         'order_id' => $order->id,
                         'meal_id' => $onemeal['meal_id'],
@@ -139,15 +140,16 @@ class OrderController extends Controller
                 }
                 // 修改資料表orders、order_details、wallet_logs、wallets end
                 DB::commit();
+
                 return ['error' => __('error.success')];
             } catch (\Exception $e) {
                 // 修改資料表orders、order_details、wallet_logs、wallets 失敗回滾
                 DB::rollBack();
                 Log::channel('sendOrder')->info($e);
-            } finally {
-
-                $lock->release();
             }
+        } else {
+            // 還鎖著
+            return ['error' => __('error.doNotRepeatSentRequest')];
         }
         // cache lock end
 
